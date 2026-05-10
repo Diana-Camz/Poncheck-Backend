@@ -1,11 +1,13 @@
 package com.poncheck.entity;
 
+import com.poncheck.dto.request.ProductRequestDTO;
 import com.poncheck.enums.PoncheBase;
 import com.poncheck.enums.ProductSize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
@@ -13,9 +15,22 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "product")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
+    public Product(ProductRequestDTO productData, Category category, String code) {
+        this.name = productData.name();
+        this.code = code;
+        this.price = productData.price();
+        this.flavor = productData.flavor();
+        this.description = productData.description();
+        this.productSize = productData.productSize();
+        this.poncheBase = productData.poncheBase();
+        this.category = category;
+        this.active = true;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_product")

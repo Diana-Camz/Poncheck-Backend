@@ -15,8 +15,6 @@ public record ProductRequestDTO(
         @Size(max = 100)
         String name,
         @NotNull
-        String code,
-        @NotNull
         @Positive
         BigDecimal price,
         String flavor,

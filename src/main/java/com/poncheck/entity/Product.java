@@ -1,0 +1,53 @@
+package com.poncheck.entity;
+
+import com.poncheck.enums.PoncheBase;
+import com.poncheck.enums.ProductSize;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+
+@Entity
+@Table(name = "product")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_product")
+    private Long id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(nullable = false,  unique = true, length = 100)
+    private String code;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(length = 50)
+    private String flavor;
+
+    @Column(length = 100)
+    private String description;
+
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ponche_base")
+    private PoncheBase poncheBase;
+
+    @Enumerated(EnumType.STRING)
+    private ProductSize productSize;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+}
+

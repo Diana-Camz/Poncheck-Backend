@@ -3,7 +3,7 @@ package com.poncheck.service;
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
-import com.poncheck.dto.response.ProductResponseDTO;
+import com.poncheck.dto.response.product.ProductResponseDTO;
 
 import java.util.List;
 

@@ -5,6 +5,7 @@ import com.poncheck.dto.request.category.UpdateActiveCategoryDTO;
 import com.poncheck.dto.request.category.UpdateCategoryRequestDTO;
 import com.poncheck.dto.response.category.CategoryResponseDTO;
 import com.poncheck.entity.Category;
+import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CategoryRepository;
 import com.poncheck.service.CategoryService;
@@ -57,7 +58,11 @@ public class CategoryServiceImpl implements CategoryService {
     //Creates a new Category
     @Override
     public CategoryResponseDTO createCategory(CreateCategoryRequestDTO data) {
-        Category category = new Category(data);
+        String normalizedName = data.name().trim().toLowerCase();
+        if(repository.existsByNameIgnoreCase(normalizedName)){
+            throw new DuplicateFieldException("A category with this name already exists");
+        }
+        Category category = new Category(data.name().trim());
         Category categorySaved = repository.save(category);
         return new CategoryResponseDTO(categorySaved);
     }
@@ -67,6 +72,10 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO data) {
         Category category = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+        String normalizedName = data.name().trim().toLowerCase();
+        if(repository.existsByNameIgnoreCase(normalizedName)){
+            throw new DuplicateFieldException("A category with this name already exists");
+        }
         category.updateCategory(data.name());
         Category categoryUpdated = repository.save(category);
         return new CategoryResponseDTO(categoryUpdated);

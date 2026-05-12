@@ -6,6 +6,7 @@ import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
 import com.poncheck.entity.Category;
 import com.poncheck.entity.Product;
+import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.CategoryRepository;
@@ -25,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO getProductById(Long productId) {
         Product product = repository.findById(productId)
-               .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+               .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
         return new ProductResponseDTO(product);
     }
 
@@ -55,7 +56,15 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(productData.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category ID Not Found"));
         String code = generateProductCode(category);
-        Product product = new Product(productData, category, code);
+        Product product = new Product(
+                productData.name(),
+                productData.price(),
+                productData.flavor(),
+                productData.description(),
+                productData.productSize(),
+                productData.poncheBase(),
+                category,
+                code);
 
         Product savedProduct = repository.save(product);
         return new ProductResponseDTO(savedProduct);
@@ -66,6 +75,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO data) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+        if(repository.existsByCode(data.code())){
+                throw new DuplicateFieldException("A product with this code already exists");
+        }
         Category category = null;
         if(data.categoryId() != null){
             category = categoryRepository.findById(data.categoryId())

@@ -62,7 +62,7 @@ public class CategoryController {
         return ResponseEntity.ok(category);
     }
     //Updates active status (logical deletion)
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id}/active")
     public ResponseEntity <CategoryResponseDTO> updateActive(@PathVariable Long id, @RequestBody UpdateActiveCategoryDTO status){
         CategoryResponseDTO category = service.updateActive(id, status);
         return ResponseEntity.ok(category);

@@ -3,7 +3,7 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
-import com.poncheck.dto.response.ProductResponseDTO;
+import com.poncheck.dto.response.product.ProductResponseDTO;
 import com.poncheck.entity.Category;
 import com.poncheck.entity.Product;
 import com.poncheck.exception.ResourceNotFoundException;

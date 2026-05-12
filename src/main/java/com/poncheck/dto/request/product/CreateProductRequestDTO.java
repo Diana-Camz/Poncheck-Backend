@@ -1,4 +1,4 @@
-package com.poncheck.dto.request;
+package com.poncheck.dto.request.product;
 
 import com.poncheck.enums.PoncheBase;
 import com.poncheck.enums.ProductSize;
@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-public record ProductRequestDTO(
+public record CreateProductRequestDTO(
         @NotBlank
         @Size(max = 100)
         String name,

@@ -98,8 +98,9 @@ public class ProductServiceImpl implements ProductService {
     //Deletes a product (physical deletion)
     @Override
     public void deleteProduct(Long id){
-
-        repository.deleteById(id);
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+        repository.delete(product);
     }
 
 }

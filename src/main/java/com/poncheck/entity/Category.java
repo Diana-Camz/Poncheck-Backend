@@ -1,6 +1,7 @@
 package com.poncheck.entity;
 
 
+import com.poncheck.dto.request.category.CreateCategoryRequestDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Category {
+    public Category(CreateCategoryRequestDTO data){
+        this.name = data.name();
+        this.active = true;
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_category")

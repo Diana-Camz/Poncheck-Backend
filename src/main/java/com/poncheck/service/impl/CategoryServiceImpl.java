@@ -62,14 +62,24 @@ public class CategoryServiceImpl implements CategoryService {
         return new CategoryResponseDTO(categorySaved);
     }
 
+    //Updates name field by its ID
     @Override
     public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO data) {
-        return null;
+        Category category = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+        category.updateCategory(data.name());
+        Category categoryUpdated = repository.save(category);
+        return new CategoryResponseDTO(categoryUpdated);
     }
 
+    //Updates the product active status (logical deletion)
     @Override
     public CategoryResponseDTO updateActive(Long id, UpdateActiveCategoryDTO status) {
-        return null;
+        Category category = repository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found"));
+        category.updateActive(status.active());
+        Category updatedStatus = repository.save(category);
+        return new CategoryResponseDTO(updatedStatus);
     }
 
     //Deletes a category (physical deletion)

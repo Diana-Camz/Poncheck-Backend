@@ -28,4 +28,16 @@ public class Category {
     @Column(nullable = false)
     private Boolean active = true;
 
+    public void updateCategory(String name){
+        if(name != null){
+            this.name = name;
+        }
+    }
+
+    public void updateActive(Boolean active){
+        if(active != null){
+            this.active = active;
+        }
+    }
+
 }

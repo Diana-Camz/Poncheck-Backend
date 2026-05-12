@@ -1,6 +1,8 @@
 package com.poncheck.controller;
 
 import com.poncheck.dto.request.category.CreateCategoryRequestDTO;
+import com.poncheck.dto.request.category.UpdateActiveCategoryDTO;
+import com.poncheck.dto.request.category.UpdateCategoryRequestDTO;
 import com.poncheck.dto.response.category.CategoryResponseDTO;
 import com.poncheck.entity.Category;
 import com.poncheck.service.CategoryService;
@@ -51,6 +53,19 @@ public class CategoryController {
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody CreateCategoryRequestDTO data){
         CategoryResponseDTO category = service.createCategory(data);
         return ResponseEntity.status(HttpStatus.CREATED).body(category);
+    }
+
+    //Updates name field
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable Long id, @RequestBody UpdateCategoryRequestDTO data){
+        CategoryResponseDTO category = service.updateCategory(id, data);
+        return ResponseEntity.ok(category);
+    }
+    //Updates active status (logical deletion)
+    @PatchMapping("/{id}")
+    public ResponseEntity <CategoryResponseDTO> updateActive(@PathVariable Long id, @RequestBody UpdateActiveCategoryDTO status){
+        CategoryResponseDTO category = service.updateActive(id, status);
+        return ResponseEntity.ok(category);
     }
 
     //Deletes a category by its ID (physical deletion)

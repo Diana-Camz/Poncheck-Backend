@@ -18,18 +18,42 @@ public class CategoryController {
 
     private final CategoryService service;
 
+    //Retrieves a list of all Categories
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getCategories(){
         List <CategoryResponseDTO> categories = service.getCategories();
         return ResponseEntity.ok(categories);
     }
 
+    //Retrieves a list of active categories
+    @GetMapping("/active")
+    public ResponseEntity<List<CategoryResponseDTO>> getActiveCategories(){
+        List <CategoryResponseDTO> categories = service.getActiveCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    //Retrieves a list of inactive categories
+    @GetMapping("/inactive")
+    public ResponseEntity<List<CategoryResponseDTO>> getInactiveCategories(){
+        List <CategoryResponseDTO> categories = service.getInactiveCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    //Retrieves a category by its ID
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id){
+        CategoryResponseDTO category = service.getCategoryById(id);
+        return ResponseEntity.ok(category);
+    }
+
+    //Creates a new Category
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody CreateCategoryRequestDTO data){
         CategoryResponseDTO category = service.createCategory(data);
         return ResponseEntity.status(HttpStatus.CREATED).body(category);
     }
 
+    //Deletes a category by its ID (physical deletion)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id){
         service.deleteCategory(id);

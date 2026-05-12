@@ -19,6 +19,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
 
 
+    //Retrieves all categories
     @Override
     public List<CategoryResponseDTO> getCategories() {
         List <Category> categories = repository.findAll();
@@ -27,16 +28,33 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
     }
 
+    // Retrieves all active categories
     @Override
     public List<CategoryResponseDTO> getActiveCategories() {
-        return List.of();
+        List <Category> categories = repository.findByActiveTrue();
+        return categories.stream()
+                .map(CategoryResponseDTO::new)
+                .toList();
     }
 
+    // Retrieves all Inactive Categories
+    @Override
+    public List<CategoryResponseDTO> getInactiveCategories() {
+        List <Category> categories = repository.findByActiveFalse();
+        return categories.stream()
+                .map(CategoryResponseDTO::new)
+                .toList();
+    }
+
+    //Retrieves a category by its ID
     @Override
     public CategoryResponseDTO getCategoryById(Long id) {
-        return null;
+        Category category = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+        return new CategoryResponseDTO(category);
     }
 
+    //Creates a new Category
     @Override
     public CategoryResponseDTO createCategory(CreateCategoryRequestDTO data) {
         Category category = new Category(data);

@@ -79,6 +79,7 @@ public class Product {
             String code,
             BigDecimal price,
             String flavor,
+            String description,
             PoncheBase poncheBase,
             ProductSize productSize,
             Category category

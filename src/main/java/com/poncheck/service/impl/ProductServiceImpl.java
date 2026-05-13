@@ -106,6 +106,7 @@ public class ProductServiceImpl implements ProductService {
                 data.code(),
                 data.price(),
                 data.flavor(),
+                data.description(),
                 data.poncheBase(),
                 data.productSize(),
                 category);

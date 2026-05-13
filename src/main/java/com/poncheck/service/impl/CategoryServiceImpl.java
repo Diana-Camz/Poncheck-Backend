@@ -81,7 +81,7 @@ public class CategoryServiceImpl implements CategoryService {
         return new CategoryResponseDTO(categoryUpdated);
     }
 
-    //Updates the product active status (logical deletion)
+    //Updates the category active status (logical deletion)
     @Override
     public CategoryResponseDTO updateActive(Long id, UpdateActiveCategoryDTO status) {
         Category category = repository.findById(id)

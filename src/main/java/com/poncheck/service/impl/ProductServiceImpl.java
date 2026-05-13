@@ -39,6 +39,23 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    //Retrieves a list of all active products
+    @Override
+    public List<ProductResponseDTO> getActiveProducts(){
+        List<Product> products = repository.findByActiveTrue();
+        return products.stream()
+                .map(ProductResponseDTO::new)
+                .toList();
+    }
+    //Retrieves a list of all inactive products
+    @Override
+    public List<ProductResponseDTO> getInactiveProducts(){
+        List<Product> products = repository.findByActiveFalse();
+        return products.stream()
+                .map(ProductResponseDTO::new)
+                .toList();
+    }
+
     //Method that automatically generates a code when creating a new product, based on the category
     // name and a sequential number
     private String generateProductCode(Category category){

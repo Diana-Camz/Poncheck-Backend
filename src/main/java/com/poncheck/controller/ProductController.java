@@ -35,6 +35,19 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    //Retrieves a list of all active products
+    @GetMapping("/active")
+    public ResponseEntity<List<ProductResponseDTO>> getActiveProducts(){
+        List<ProductResponseDTO> products = service.getActiveProducts();
+        return ResponseEntity.ok(products);
+    }
+    //Retrieves a list of all inactive products
+    @GetMapping("/inactive")
+    public ResponseEntity<List<ProductResponseDTO>> getInactiveProducts(){
+        List<ProductResponseDTO> products = service.getInactiveProducts();
+        return ResponseEntity.ok(products);
+    }
+
     //Creates a new product, categoryID must not be null
     @PostMapping
     public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody @Valid CreateProductRequestDTO productData){

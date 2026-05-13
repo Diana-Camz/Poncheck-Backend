@@ -6,6 +6,7 @@ import com.poncheck.dto.request.user.UpdateUserRequestDTO;
 import com.poncheck.dto.response.user.UserResponseDTO;
 import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
+import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,24 +20,39 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
 
+    //Retrieves all users
     @Override
     public List<UserResponseDTO> getUsers() {
-        return List.of();
+        List<User> users = repository.findAll();
+          return  users.stream()
+                    .map(UserResponseDTO::new)
+                    .toList();
     }
 
+    //Retrieves all active users
     @Override
     public List<UserResponseDTO> getActiveUsers() {
-        return List.of();
+        List<User> users = repository.findByActiveTrue();
+        return users.stream()
+                .map(UserResponseDTO::new)
+                .toList();
     }
 
+    //Retrieves all inactive users
     @Override
     public List<UserResponseDTO> getInactiveUsers() {
-        return List.of();
+        List<User> users = repository.findByActiveFalse();
+        return users.stream()
+                .map(UserResponseDTO::new)
+                .toList();
     }
 
+    //Retrieves a user by its ID
     @Override
     public UserResponseDTO getUserById(Long id) {
-        return null;
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+        return new UserResponseDTO(user);
     }
 
     //Creates new User
@@ -57,17 +73,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO updateUser(UpdateUserRequestDTO user) {
-        return null;
+    public UserResponseDTO updateUser(Long id, UpdateUserRequestDTO userData) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+        if(repository.existsUserByUsername(userData.username())){
+            throw new DuplicateFieldException("A user with this username already exists");
+        }
+        user.updateUser(
+                userData.name(),
+                userData.username(),
+                userData.role()
+        );
+
+        User userSaved = repository.save(user);
+        return new UserResponseDTO(userSaved);
     }
 
     @Override
-    public UserResponseDTO updateActive(UpdateActiveUserRequestDTO status) {
-        return null;
+    public UserResponseDTO updateActive(Long id, UpdateActiveUserRequestDTO status) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+        user.inactiveUser(status.active());
+        User userSaved = repository.save(user);
+        return new UserResponseDTO(userSaved);
     }
 
     @Override
     public void deleteUser(Long id) {
-
+        User user = repository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+        repository.delete(user);
     }
 }

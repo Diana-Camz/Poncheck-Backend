@@ -1,6 +1,6 @@
 package com.poncheck.dto.request.auth;
 
-public record LoginRequestDTO(
+public record AuthLoginRequestDTO(
         String username,
         String password
 ) {

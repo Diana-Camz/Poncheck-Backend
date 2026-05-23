@@ -1,18 +1,15 @@
-package com.poncheck.dto.request.user;
+package com.poncheck.dto.request.auth;
 
 import com.poncheck.enums.Role;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
-public record CreateUserRequestDTO(
+public record AuthRegisterRequestDTO(
         @NotBlank
         String name,
         @NotBlank
-
         String username,
         @NotBlank
         String password,
-        @NotNull
         Role role
 ) {
 }

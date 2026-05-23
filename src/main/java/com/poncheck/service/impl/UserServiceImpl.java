@@ -1,6 +1,5 @@
 package com.poncheck.service.impl;
 
-import com.poncheck.dto.request.user.CreateUserRequestDTO;
 import com.poncheck.dto.request.user.UpdateActiveUserRequestDTO;
 import com.poncheck.dto.request.user.UpdateUserRequestDTO;
 import com.poncheck.dto.response.user.UserResponseDTO;
@@ -10,7 +9,7 @@ import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
 
     //Retrieves all users
     @Override
@@ -55,26 +53,6 @@ public class UserServiceImpl implements UserService {
         User user = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
         return new UserResponseDTO(user);
-    }
-
-    //Creates new User
-    @Override
-    public UserResponseDTO createUser(CreateUserRequestDTO userData) {
-        if(repository.existsUserByUsername(userData.username())){
-            throw new DuplicateFieldException("A user with this username already exists");
-        }
-
-        String hashedPassword = passwordEncoder.encode(userData.password());
-
-        User user = new User(
-                userData.name(),
-                userData.username(),
-                hashedPassword,
-                userData.role()
-        );
-
-        User userSaved = repository.save(user);
-        return new UserResponseDTO(userSaved);
     }
 
     @Override

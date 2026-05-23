@@ -47,7 +47,10 @@ public class User implements UserDetails {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.SELLER;
+
+    @Column(name= "refresh_token")
+    private String refreshToken;
 
     @Column(nullable = false)
     private Boolean active = true;

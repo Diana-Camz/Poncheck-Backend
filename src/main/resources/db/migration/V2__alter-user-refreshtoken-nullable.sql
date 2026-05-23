@@ -1,0 +1,1 @@
+ALTER TABLE user MODIFY COLUMN refresh_token VARCHAR(200) NULL;

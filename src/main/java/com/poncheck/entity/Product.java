@@ -19,14 +19,22 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    public Product(CreateProductRequestDTO productData, Category category, String code) {
-        this.name = productData.name();
+    public Product(
+            String name,
+            BigDecimal price,
+            String flavor,
+            String description,
+            ProductSize productSize,
+            PoncheBase poncheBase,
+            Category category,
+            String code) {
+        this.name = name;
         this.code = code;
-        this.price = productData.price();
-        this.flavor = productData.flavor();
-        this.description = productData.description();
-        this.productSize = productData.productSize();
-        this.poncheBase = productData.poncheBase();
+        this.price = price;
+        this.flavor = flavor;
+        this.description = description;
+        this.productSize = productSize;
+        this.poncheBase = poncheBase;
         this.category = category;
         this.active = true;
     }
@@ -71,6 +79,7 @@ public class Product {
             String code,
             BigDecimal price,
             String flavor,
+            String description,
             PoncheBase poncheBase,
             ProductSize productSize,
             Category category

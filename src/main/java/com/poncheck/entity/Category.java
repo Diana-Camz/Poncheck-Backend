@@ -13,8 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Category {
-    public Category(CreateCategoryRequestDTO data){
-        this.name = data.name();
+    public Category(
+            String name
+    ){
+        this.name = name;
         this.active = true;
     }
     @Id

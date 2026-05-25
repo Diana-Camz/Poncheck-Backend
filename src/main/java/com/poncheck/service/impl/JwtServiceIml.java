@@ -60,7 +60,7 @@ public class JwtServiceIml implements JwtService {
                 .setSubject(user.getUsername())
                 .claims(Map.of("role", user.getRole()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getHashedKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

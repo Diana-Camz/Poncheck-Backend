@@ -1,6 +1,5 @@
 package com.poncheck.security;
 
-import com.poncheck.repository.UserRepository;
 import com.poncheck.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,14 +17,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.net.http.HttpHeaders;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -48,6 +45,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwtToken = authHeader.substring(7);
         final String username = jwtService.extractUsername(jwtToken);
         if(username == null){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
@@ -59,6 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         boolean isTokenValid = jwtService.isTokenValid(jwtToken, userDetails);
         if(!isTokenValid){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 

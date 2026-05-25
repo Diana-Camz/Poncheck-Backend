@@ -18,8 +18,18 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class CancelledSale {
 
+    public CancelledSale(
+            Long id,
+            User user,
+            String reason
+    ){
+        this.user = user;
+        this.reason = reason;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_cancelation")
     private Long id;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

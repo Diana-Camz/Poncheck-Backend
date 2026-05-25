@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record SalesResponseDTO(
+        Long id,
         BigDecimal total,
         PaymentMethod paymentMethod,
         LocalDateTime date,
@@ -17,6 +18,7 @@ public record SalesResponseDTO(
 ) {
     public SalesResponseDTO(Sales sale){
         this(
+                sale.getId(),
                 sale.getTotal(),
                 sale.getPaymentMethod(),
                 sale.getDate(),

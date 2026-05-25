@@ -2,10 +2,8 @@ package com.poncheck.dto.request.sales;
 
 import java.time.LocalDateTime;
 
-public record CancellSaleRequestDTO(
+public record CancelSaleRequestDTO(
         Long userId,
-        Long saleId,
-        LocalDateTime date,
         String reason
 
 ) {

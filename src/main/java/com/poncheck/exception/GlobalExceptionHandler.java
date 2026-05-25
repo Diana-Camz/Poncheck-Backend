@@ -24,7 +24,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateFieldException.class)
     public ResponseEntity<ErrorResponseDTO> handleDuplicateField(DuplicateFieldException exception){
         ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
-        return ResponseEntity.status(HttpStatus.CONFLICT.value()).body(error);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(SaleAlreadyCancelledException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSaleAlreadyCancelled(SaleAlreadyCancelledException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
 

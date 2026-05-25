@@ -1,5 +1,6 @@
 package com.poncheck.service.impl;
 
+import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
@@ -33,6 +34,29 @@ public class SalesServiceImpl implements SalesService {
        return salesList.stream()
                .map(SalesResponseDTO::new)
                .toList();
+    }
+
+    @Override
+    public List<SalesResponseDTO> getSalesByCancelledTrue() {
+        List<Sales> sales = repository.findByCancelledTrue();
+        return sales.stream()
+                .map(SalesResponseDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<SalesResponseDTO> getSalesByCancelledFalse() {
+        List<Sales> sales = repository.findByCancelledFalse();
+        return sales.stream()
+                .map(SalesResponseDTO::new)
+                .toList();
+    }
+
+    @Override
+    public SalesResponseDTO getSaleById(Long id) {
+        Sales sale = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+        return new SalesResponseDTO(sale);
     }
 
     @Override
@@ -71,5 +95,22 @@ public class SalesServiceImpl implements SalesService {
         sale.setTotal(total);
         Sales saleSaved = repository.save(sale);
         return new SalesResponseDTO(saleSaved);
+    }
+
+    @Override
+    public void cancelSale(Long id, CancelSaleRequestDTO data) {
+        Sales sale = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+
+        User user = userRepository.findById(data.userId())
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+
+
+        sale.cancelSale(
+                id,
+                user,
+                data.reason()
+        );
+        repository.save(sale);
     }
 }

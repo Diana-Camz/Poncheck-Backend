@@ -1,7 +1,11 @@
 package com.poncheck.entity;
 
+import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.enums.PaymentMethod;
+import com.poncheck.enums.SaleStatus;
+import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.exception.SaleAlreadyCancelledException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +17,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.poncheck.enums.SaleStatus.CANCELLED;
+import static com.poncheck.enums.SaleStatus.COMPLETED;
 
 @Entity
 @Setter
@@ -31,6 +38,7 @@ public class Sales {
         this.paymentMethod = paymentMethod;
         this.description = description;
         this.user = user;
+        this.saleStatus = COMPLETED;
     }
 
     @Id
@@ -52,7 +60,12 @@ public class Sales {
     @Column(length = 255)
     private String description;
 
-    private Boolean cancelled = false;
+    @Column(nullable = false, name = "sale_status")
+    @Enumerated(EnumType.STRING)
+    private SaleStatus saleStatus;
+
+    @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private CancelledSale cancelled;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> items = new ArrayList<>();
@@ -82,10 +95,18 @@ public class Sales {
 
     }
 
-    public void cancelSale(Boolean cancel){
-        if(cancelled != null){
-            this.cancelled = cancel;
+    public void cancelSale(Long id, User user, String reason){
+        if(this.saleStatus == CANCELLED){
+            throw new SaleAlreadyCancelledException("Sale Already Cancelled");
         }
+        this.saleStatus = CANCELLED;
+        CancelledSale cancelledSale = new CancelledSale(
+                id,
+                user,
+                reason
+        );
+        cancelledSale.setSale(this);
+        this.cancelled = cancelledSale;
     }
 
 }

@@ -1,12 +1,12 @@
 package com.poncheck.controller;
 
+import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,4 +23,9 @@ public class SaleController {
     }
 
 
+    @PostMapping
+    public ResponseEntity<SalesResponseDTO> createSale(@RequestBody CreateSaleRequestDTO data){
+        SalesResponseDTO sale = salesService.createSale(data);
+        return ResponseEntity.status(HttpStatus.CREATED).body(sale);
+    }
 }

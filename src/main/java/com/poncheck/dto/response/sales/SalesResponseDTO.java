@@ -5,13 +5,15 @@ import com.poncheck.enums.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record SalesResponseDTO(
         BigDecimal total,
         PaymentMethod paymentMethod,
         LocalDateTime date,
         String description,
-        String user
+        String user,
+        List<SaleItemsResponseDTO> items
 ) {
     public SalesResponseDTO(Sales sale){
         this(
@@ -19,7 +21,8 @@ public record SalesResponseDTO(
                 sale.getPaymentMethod(),
                 sale.getDate(),
                 sale.getDescription(),
-                sale.getUser().getName()
+                sale.getUser().getName(),
+                sale.getItems().stream().map(SaleItemsResponseDTO::new).toList()
         );
     }
 }

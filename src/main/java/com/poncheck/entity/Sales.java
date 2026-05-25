@@ -1,5 +1,6 @@
 package com.poncheck.entity;
 
+import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Setter
@@ -51,10 +54,17 @@ public class Sales {
 
     private Boolean cancelled = false;
 
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SaleItem> items = new ArrayList<>();
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public void addSaleItem(SaleItem saleItem){
+        items.add(saleItem);
+        saleItem.setSale(this);
+    }
     public void updateSale(
             PaymentMethod paymentMethod,
             String description,
@@ -72,9 +82,9 @@ public class Sales {
 
     }
 
-    public void updateActive(Boolean cancelled){
+    public void cancelSale(Boolean cancel){
         if(cancelled != null){
-            this.cancelled = cancelled;
+            this.cancelled = cancel;
         }
     }
 

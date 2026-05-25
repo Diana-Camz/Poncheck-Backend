@@ -9,25 +9,23 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "products_sale")
+@Table(name = "sale_item")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductsSale {
+public class SaleItem {
 
-    public ProductsSale(
+    public SaleItem(
             Integer quantity,
             BigDecimal unitPrice,
             BigDecimal subtotal,
-            Product product,
-            Sales sale
+            Product product
     ){
             this.quantity = quantity;
             this.unitPrice = unitPrice;
             this.subtotal = subtotal;
             this.product = product;
-            this.sale = sale;
     }
 
     @Id

@@ -8,5 +8,7 @@ public enum TypeMovement {
     COURTESY,
     SAMPLING,
     EXCHANGE,
-    WASTE
+    WASTE,
+    SALE_CANCELLED,
+    ADJUSTMENT
 }

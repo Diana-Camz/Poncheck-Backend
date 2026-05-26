@@ -1,4 +1,4 @@
-package com.poncheck.dto.response;
+package com.poncheck.dto.response.product;
 
 import com.poncheck.entity.Product;
 import com.poncheck.enums.PoncheBase;

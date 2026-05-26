@@ -1,6 +1,6 @@
 package com.poncheck.entity;
 
-import com.poncheck.dto.request.ProductRequestDTO;
+import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.enums.PoncheBase;
 import com.poncheck.enums.ProductSize;
 import jakarta.persistence.*;
@@ -19,14 +19,22 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    public Product(ProductRequestDTO productData, Category category, String code) {
-        this.name = productData.name();
+    public Product(
+            String name,
+            BigDecimal price,
+            String flavor,
+            String description,
+            ProductSize productSize,
+            PoncheBase poncheBase,
+            Category category,
+            String code) {
+        this.name = name;
         this.code = code;
-        this.price = productData.price();
-        this.flavor = productData.flavor();
-        this.description = productData.description();
-        this.productSize = productData.productSize();
-        this.poncheBase = productData.poncheBase();
+        this.price = price;
+        this.flavor = flavor;
+        this.description = description;
+        this.productSize = productSize;
+        this.poncheBase = poncheBase;
         this.category = category;
         this.active = true;
     }
@@ -64,5 +72,48 @@ public class Product {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+
+    public void updateData(
+            String name,
+            String code,
+            BigDecimal price,
+            String flavor,
+            String description,
+            PoncheBase poncheBase,
+            ProductSize productSize,
+            Category category
+    ) {
+        if(name != null){
+            this.name = name;
+        }
+        if(code != null){
+            this.code = code;
+        }
+        if(price != null){
+            this.price = price;
+        }
+        if(flavor != null){
+            this.flavor = flavor;
+        }
+        if(description != null){
+            this.description = description;
+        }
+        if(poncheBase != null){
+            this.poncheBase = poncheBase;
+        }
+        if(productSize != null){
+            this.productSize = productSize;
+        }
+        if(category != null){
+            this.category = category;
+        }
+    }
+
+    public void updateActive(Boolean active){
+        if(active != null){
+            this.active = active;
+        }
+    }
 }
 

@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByActiveTrue();
+    List<Category> findByActiveFalse();
+    boolean existsByNameIgnoreCase(String name);
 }

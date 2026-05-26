@@ -3,11 +3,13 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
+import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.Product;
 import com.poncheck.entity.SaleItem;
 import com.poncheck.entity.Sales;
 import com.poncheck.entity.User;
+import com.poncheck.enums.SaleStatus;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.SalesRepository;
@@ -37,16 +39,8 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    public List<SalesResponseDTO> getSalesByCancelledTrue() {
-        List<Sales> sales = repository.findByCancelledTrue();
-        return sales.stream()
-                .map(SalesResponseDTO::new)
-                .toList();
-    }
-
-    @Override
-    public List<SalesResponseDTO> getSalesByCancelledFalse() {
-        List<Sales> sales = repository.findByCancelledFalse();
+    public List<SalesResponseDTO> getSalesByStatus(SaleStatus status) {
+        List<Sales> sales = repository.findBySaleStatus(status);
         return sales.stream()
                 .map(SalesResponseDTO::new)
                 .toList();
@@ -93,6 +87,19 @@ public class SalesServiceImpl implements SalesService {
             sale.addSaleItem(saleItem);
         }
         sale.setTotal(total);
+        Sales saleSaved = repository.save(sale);
+        return new SalesResponseDTO(saleSaved);
+    }
+
+    @Override
+    public SalesResponseDTO updateSale(Long id, UpdateSaleRequestDTO data){
+        Sales sale = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+
+        sale.updateSale(
+                data.paymentMethod(),
+                data.description()
+        );
         Sales saleSaved = repository.save(sale);
         return new SalesResponseDTO(saleSaved);
     }

@@ -2,8 +2,10 @@ package com.poncheck.controller;
 
 import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
+import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.Sales;
+import com.poncheck.enums.SaleStatus;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SaleController {
     private final SalesService service;
-
-    @GetMapping
+    {/*    @GetMapping
     public ResponseEntity<List<SalesResponseDTO>> getAllSales(){
         List<SalesResponseDTO> salesList = service.getAllSales();
         return ResponseEntity.ok(salesList);
     }
+    */}
 
     @GetMapping("/{id}")
     public ResponseEntity<SalesResponseDTO> getSaleById(@PathVariable Long id){
@@ -31,10 +33,22 @@ public class SaleController {
         return ResponseEntity.ok(sale);
     }
 
+    @GetMapping
+    public ResponseEntity<List<SalesResponseDTO>> getSalesByStatus(@RequestParam SaleStatus status){
+        List<SalesResponseDTO> salesList = service.getSalesByStatus(status);
+        return ResponseEntity.ok(salesList);
+    }
+
     @PostMapping
     public ResponseEntity<SalesResponseDTO> createSale(@RequestBody CreateSaleRequestDTO data){
         SalesResponseDTO sale = service.createSale(data);
         return ResponseEntity.status(HttpStatus.CREATED).body(sale);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<SalesResponseDTO> updateSale(@PathVariable Long id, @RequestBody UpdateSaleRequestDTO data){
+        SalesResponseDTO sale = service.updateSale(id, data);
+        return ResponseEntity.ok(sale);
     }
 
     @PatchMapping("/delete/{id}")

@@ -33,6 +33,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InvalidSaleStateException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidSaleStateException(InvalidSaleStateException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
 
     //GENERIC EXCEPTIONS
     @ExceptionHandler(DataIntegrityViolationException.class)

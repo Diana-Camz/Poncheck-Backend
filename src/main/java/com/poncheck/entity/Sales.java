@@ -1,10 +1,8 @@
 package com.poncheck.entity;
 
-import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
-import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.enums.PaymentMethod;
 import com.poncheck.enums.SaleStatus;
-import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.exception.InvalidSaleStateException;
 import com.poncheck.exception.SaleAlreadyCancelledException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -80,24 +78,23 @@ public class Sales {
     }
     public void updateSale(
             PaymentMethod paymentMethod,
-            String description,
-            User user
+            String description
     ){
+        if(this.saleStatus == CANCELLED){
+            throw new SaleAlreadyCancelledException("Cancelled Sales Cannot Be Edited");
+        }
         if(paymentMethod != null){
             this.paymentMethod = paymentMethod;
         }
         if(description != null){
             this.description = description;
         }
-        if(user != null){
-            this.user = user;
-        }
 
     }
 
     public void cancelSale(Long id, User user, String reason){
         if(this.saleStatus == CANCELLED){
-            throw new SaleAlreadyCancelledException("Sale Already Cancelled");
+            throw new InvalidSaleStateException("Sale Already Cancelled");
         }
         this.saleStatus = CANCELLED;
         CancelledSale cancelledSale = new CancelledSale(

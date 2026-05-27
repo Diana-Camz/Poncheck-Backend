@@ -14,7 +14,7 @@ public record SalesResponseDTO(
         PaymentMethod paymentMethod,
         LocalDateTime date,
         String description,
-        String user,
+        String userId,
         List<SaleItemsResponseDTO> items,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         CancelledSaleResponseDTO cancelled

@@ -1,14 +1,14 @@
 package com.poncheck.dto.response.sales;
 
 
+import com.poncheck.dto.response.product.ProductSaleResponseDTO;
 import com.poncheck.entity.SaleItem;
 
 import java.math.BigDecimal;
 
 public record SaleItemsResponseDTO(
         Long itemId,
-        String itemName,
-        String category,
+        ProductSaleResponseDTO product,
         Integer quantity,
         BigDecimal unitPrice,
         BigDecimal subtotal
@@ -17,8 +17,7 @@ public record SaleItemsResponseDTO(
     public SaleItemsResponseDTO(SaleItem saleItem){
         this(
                 saleItem.getId(),
-                saleItem.getProduct().getName(),
-                saleItem.getProduct().getCategory().getName(),
+                new ProductSaleResponseDTO(saleItem.getProduct()),
                 saleItem.getQuantity(),
                 saleItem.getUnitPrice(),
                 saleItem.getSubtotal()

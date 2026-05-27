@@ -13,16 +13,16 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class InventoryMovement {
+public class Movement {
 
-    public InventoryMovement(
+    public Movement(
             TypeMovement typeMovement,
             int quantity,
             String description,
             User user,
             Product product,
             Sales sale,
-            InventoryMovement referenceMovement
+            Movement referenceMovement
 
     ){
        this.typeMovement = typeMovement;
@@ -67,5 +67,11 @@ public class InventoryMovement {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_movement_id")
-    private InventoryMovement referenceMovement;
+    private Movement referenceMovement;
+
+    public void updateMovement(String description){
+        if(description != null){
+            this.description = description;
+        }
+    }
 }

@@ -5,12 +5,11 @@ import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
-import com.poncheck.entity.Product;
-import com.poncheck.entity.SaleItem;
-import com.poncheck.entity.Sales;
-import com.poncheck.entity.User;
+import com.poncheck.entity.*;
 import com.poncheck.enums.SaleStatus;
+import com.poncheck.enums.TypeMovement;
 import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.repository.MovementRepository;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.SalesRepository;
 import com.poncheck.repository.UserRepository;
@@ -18,6 +17,7 @@ import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,6 +29,7 @@ public class SalesServiceImpl implements SalesService {
     private final SalesRepository repository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final MovementRepository movementRepository;
 
     @Override
     public List<SalesResponseDTO> getAllSales(){
@@ -53,12 +54,14 @@ public class SalesServiceImpl implements SalesService {
         return new SalesResponseDTO(sale);
     }
 
+    @Transactional
     @Override
     public SalesResponseDTO createSale(CreateSaleRequestDTO data){
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
 
         BigDecimal total = BigDecimal.ZERO;
+        Integer quantity = 0;
 
         Sales sale = new Sales(
                 total,
@@ -67,15 +70,16 @@ public class SalesServiceImpl implements SalesService {
                 user
         );
 
-        List<SaleItemRequestDTO> items = data.items();
 
-        for(SaleItemRequestDTO item : items) {
+
+        List<SaleItemRequestDTO> items = data.items();
+         for(SaleItemRequestDTO item : items) {
             Product product = productRepository.findById(item.productId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
-            BigDecimal unitPrice = product.getPrice();
-            Integer quantity = item.quantity();
+                    .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
+             BigDecimal unitPrice = product.getPrice();
+            quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-            total = total.add(subtotal);
+          total = total.add(subtotal);
 
             SaleItem saleItem = new SaleItem(
                     quantity,
@@ -85,7 +89,18 @@ public class SalesServiceImpl implements SalesService {
             );
 
             sale.addSaleItem(saleItem);
-        }
+             Movement movement = new Movement(
+                     TypeMovement.SALE,
+                     quantity,
+                     data.description(),
+                     user,
+                     product,
+                     sale,
+                     null
+             );
+            movementRepository.save(movement);
+        };
+
         sale.setTotal(total);
         Sales saleSaved = repository.save(sale);
         return new SalesResponseDTO(saleSaved);

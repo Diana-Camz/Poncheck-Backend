@@ -49,6 +49,13 @@ public class MovementServiceIml implements MovementService {
     }
 
     @Override
+    public MovementResponseDTO getMovementById(Long id){
+        Movement movement = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "inventory_movement", id));
+        return new MovementResponseDTO(movement);
+    }
+
+    @Override
     public List<MovementItemResponseDTO> createMovement(CreateMovementRequestDTO data) {
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));

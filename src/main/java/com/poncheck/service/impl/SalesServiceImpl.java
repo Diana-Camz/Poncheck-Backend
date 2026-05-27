@@ -9,10 +9,7 @@ import com.poncheck.entity.*;
 import com.poncheck.enums.SaleStatus;
 import com.poncheck.enums.TypeMovement;
 import com.poncheck.exception.ResourceNotFoundException;
-import com.poncheck.repository.MovementRepository;
-import com.poncheck.repository.ProductRepository;
-import com.poncheck.repository.SalesRepository;
-import com.poncheck.repository.UserRepository;
+import com.poncheck.repository.*;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,6 +26,7 @@ public class SalesServiceImpl implements SalesService {
     private final SalesRepository repository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final SaleItemRepository saleItemRepository;
     private final MovementRepository movementRepository;
 
     @Override
@@ -119,6 +117,7 @@ public class SalesServiceImpl implements SalesService {
         return new SalesResponseDTO(saleSaved);
     }
 
+    @Transactional
     @Override
     public void cancelSale(Long id, CancelSaleRequestDTO data) {
         Sales sale = repository.findById(id)
@@ -127,12 +126,28 @@ public class SalesServiceImpl implements SalesService {
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
-
         sale.cancelSale(
                 id,
                 user,
                 data.reason()
         );
+
+        List<SaleItem> itemsCancelled = saleItemRepository.findAllBySale_id(id);
+        for(SaleItem item : itemsCancelled){
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow((() -> new ResourceNotFoundException("Product Not Found", "product", item.getProduct().getId())));
+            Movement movement = new Movement(
+                TypeMovement.SALE_CANCELLED,
+                    item.getQuantity(),
+                    data.reason(),
+                    user,
+                    product,
+                    sale,
+                    null
+            );
+
+            movementRepository.save(movement);
+        }
         repository.save(sale);
     }
 }

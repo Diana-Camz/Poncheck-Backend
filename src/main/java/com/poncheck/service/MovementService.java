@@ -13,6 +13,7 @@ public interface MovementService {
     List<MovementItemResponseDTO> getMovementsByType(TypeMovement type);
     List<MovementItemResponseDTO> getMovementsByProduct(Long id);
     List<MovementItemResponseDTO> getMovementsBySale(Long id);
+    MovementResponseDTO getMovementById(Long id);
     List<MovementItemResponseDTO> createMovement(CreateMovementRequestDTO data);
     MovementResponseDTO updateMovement(Long id, UpdateMovementRequestDTO data);
 }

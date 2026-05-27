@@ -17,7 +17,13 @@ public class GlobalExceptionHandler {
     // CUSTOM EXCEPTIONS
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException exception){
-        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.NOT_FOUND.value());
+
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResource(),
+                exception.getResourceId(),
+                HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 

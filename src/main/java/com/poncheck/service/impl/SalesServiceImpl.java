@@ -49,7 +49,7 @@ public class SalesServiceImpl implements SalesService {
     @Override
     public SalesResponseDTO getSaleById(Long id) {
         Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
         return new SalesResponseDTO(sale);
     }
 
@@ -71,7 +71,7 @@ public class SalesServiceImpl implements SalesService {
 
         for(SaleItemRequestDTO item : items) {
             Product product = productRepository.findById(item.productId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
             BigDecimal unitPrice = product.getPrice();
             Integer quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
@@ -94,7 +94,7 @@ public class SalesServiceImpl implements SalesService {
     @Override
     public SalesResponseDTO updateSale(Long id, UpdateSaleRequestDTO data){
         Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
         sale.updateSale(
                 data.paymentMethod(),
@@ -107,10 +107,10 @@ public class SalesServiceImpl implements SalesService {
     @Override
     public void cancelSale(Long id, CancelSaleRequestDTO data) {
         Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
         User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
 
         sale.cancelSale(

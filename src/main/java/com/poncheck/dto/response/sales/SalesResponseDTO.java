@@ -1,6 +1,7 @@
 package com.poncheck.dto.response.sales;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.poncheck.dto.response.user.UserSaleResponseDTO;
 import com.poncheck.entity.Sales;
 import com.poncheck.enums.PaymentMethod;
 
@@ -14,7 +15,7 @@ public record SalesResponseDTO(
         PaymentMethod paymentMethod,
         LocalDateTime date,
         String description,
-        String userId,
+        UserSaleResponseDTO user,
         List<SaleItemsResponseDTO> items,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         CancelledSaleResponseDTO cancelled
@@ -26,7 +27,7 @@ public record SalesResponseDTO(
                 sale.getPaymentMethod(),
                 sale.getDate(),
                 sale.getDescription(),
-                sale.getUser().getName(),
+                new UserSaleResponseDTO(sale.getUser()),
                 sale.getItems().stream().map(SaleItemsResponseDTO::new).toList(),
                 sale.getCancelled() != null
                     ? new CancelledSaleResponseDTO(sale.getCancelled())

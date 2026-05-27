@@ -9,22 +9,22 @@ import com.poncheck.enums.TypeMovement;
 public record MovementResponseDTO(
             TypeMovement typeMovement,
             int quantity,
-            String description,
             ProductMovementResponseDTO product,
-            SaleMovementResponseDTO sale,
             UserMovementResponseDTO user,
+            SaleMovementResponseDTO sale,
+            String description,
             Long referenceMovementId
 ) {
     public MovementResponseDTO(Movement movement){
         this(
                 movement.getTypeMovement(),
                 movement.getQuantity(),
-                movement.getDescription(),
                 new ProductMovementResponseDTO(movement.getProduct()),
+                new UserMovementResponseDTO(movement.getUser()),
                 movement.getSale() != null
                 ? new SaleMovementResponseDTO(movement.getSale())
                 : null,
-                new UserMovementResponseDTO(movement.getUser()),
+                movement.getDescription(),
                 movement.getReferenceMovement() != null
                 ? movement.getReferenceMovement().getId()
                 : null

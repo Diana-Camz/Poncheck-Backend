@@ -38,6 +38,12 @@ public class MovementController {
         return ResponseEntity.ok(typeList);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MovementResponseDTO> getMovementById(@PathVariable Long id){
+        MovementResponseDTO movement = service.getMovementById(id);
+        return ResponseEntity.ok(movement);
+    }
+
     @PostMapping
     public ResponseEntity <List<MovementItemResponseDTO>> createMovement(@RequestBody CreateMovementRequestDTO data) {
         List<MovementItemResponseDTO> movement = service.createMovement(data);

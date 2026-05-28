@@ -64,6 +64,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InvalidCashMovementException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidCashMovementException(InvalidCashMovementException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidCashRegisterException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidCashRegisterException(InvalidCashRegisterException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
 
     //GENERIC EXCEPTIONS
     @ExceptionHandler(DataIntegrityViolationException.class)

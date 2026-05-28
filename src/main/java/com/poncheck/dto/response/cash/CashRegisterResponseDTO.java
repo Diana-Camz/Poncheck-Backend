@@ -1,0 +1,39 @@
+package com.poncheck.dto.response.cash;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.poncheck.dto.response.user.UserCashResponseDTO;
+import com.poncheck.entity.CashRegister;
+import com.poncheck.enums.CashRegisterStatus;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public record CashRegisterResponseDTO(
+        UserCashResponseDTO openedBy,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        UserCashResponseDTO closedBy,
+        BigDecimal openingAmount,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        BigDecimal expectedAmount,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        BigDecimal difference,
+        LocalDateTime openedAt,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        LocalDateTime closedAt,
+        String description,
+        CashRegisterStatus status
+) {
+    public CashRegisterResponseDTO(CashRegister register){
+        this (
+                new UserCashResponseDTO(register.getOpenedBy()),
+                new UserCashResponseDTO(register.getClosedBy()),
+                register.getOpeningAmount(),
+                register.getRealAmount(),
+                register.getDifference(),
+                register.getOpenedAt(),
+                register.getClosedAt(),
+                register.getDescription(),
+                register.getStatus()
+        );
+    }
+}

@@ -7,7 +7,7 @@ import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
 import com.poncheck.enums.SaleStatus;
-import com.poncheck.enums.TypeMovement;
+import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.exception.ResourceDisabledException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.*;
@@ -89,7 +89,7 @@ public class SalesServiceImpl implements SalesService {
             );
             sale.addSaleItem(saleItem);
             Movement movement = new Movement(
-                     TypeMovement.SALE,
+                     TypeInventoryMovement.SALE,
                      quantity,
                      data.description(),
                      user,
@@ -129,7 +129,7 @@ public class SalesServiceImpl implements SalesService {
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
         sale.cancelSale(
-                id,
+                sale,
                 user,
                 data.reason()
         );
@@ -139,7 +139,7 @@ public class SalesServiceImpl implements SalesService {
             Product product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow((() -> new ResourceNotFoundException("Product Not Found", "product", item.getProduct().getId())));
             Movement movement = new Movement(
-                TypeMovement.SALE_CANCELLED,
+                TypeInventoryMovement.SALE_CANCELLED,
                     item.getQuantity(),
                     data.reason(),
                     user,

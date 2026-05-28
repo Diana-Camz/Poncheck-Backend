@@ -92,13 +92,13 @@ public class Sales {
 
     }
 
-    public void cancelSale(Long id, User user, String reason){
+    public void cancelSale(Sales sale, User user, String reason){
         if(this.saleStatus == CANCELLED){
             throw new InvalidSaleStateException("Sale Already Cancelled");
         }
         this.saleStatus = CANCELLED;
         CancelledSale cancelledSale = new CancelledSale(
-                id,
+                this,
                 user,
                 reason
         );

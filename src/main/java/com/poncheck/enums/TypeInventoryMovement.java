@@ -1,6 +1,6 @@
 package com.poncheck.enums;
 
-public enum TypeMovement {
+public enum TypeInventoryMovement {
 
     PURCHASE(true),
     PRODUCTION(true),
@@ -15,7 +15,7 @@ public enum TypeMovement {
 
     private final boolean addsStock;
 
-    TypeMovement(boolean addsStock) {
+    TypeInventoryMovement(boolean addsStock) {
         this.addsStock = addsStock;
     }
 

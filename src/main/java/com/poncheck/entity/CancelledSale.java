@@ -19,10 +19,11 @@ import java.time.LocalDateTime;
 public class CancelledSale {
 
     public CancelledSale(
-            Long id,
+            Sales sale,
             User user,
             String reason
     ){
+        this.sale = sale;
         this.user = user;
         this.reason = reason;
     }

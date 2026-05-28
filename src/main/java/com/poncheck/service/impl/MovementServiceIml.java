@@ -8,7 +8,7 @@ import com.poncheck.entity.Movement;
 import com.poncheck.entity.Product;
 import com.poncheck.entity.Sales;
 import com.poncheck.entity.User;
-import com.poncheck.enums.TypeMovement;
+import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.exception.ResourceDisabledException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.MovementRepository;
@@ -33,8 +33,8 @@ public class MovementServiceIml implements MovementService {
 
 
     @Override
-    public List<MovementItemResponseDTO> getMovementsByType(TypeMovement type){
-        List<Movement> typeList = repository.findMovementByTypeMovement(type);
+    public List<MovementItemResponseDTO> getMovementsByType(TypeInventoryMovement type){
+        List<Movement> typeList = repository.findMovementByTypeInventoryMovement(type);
         return typeList.stream().map(MovementItemResponseDTO::new).toList();
     }
 

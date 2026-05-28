@@ -4,7 +4,7 @@ import com.poncheck.dto.request.inventory.CreateMovementRequestDTO;
 import com.poncheck.dto.request.inventory.UpdateMovementRequestDTO;
 import com.poncheck.dto.response.inventory.MovementItemResponseDTO;
 import com.poncheck.dto.response.inventory.MovementResponseDTO;
-import com.poncheck.enums.TypeMovement;
+import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.service.MovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,7 @@ public class MovementController {
     private final MovementService service;
 
     @GetMapping
-    public ResponseEntity<List<MovementItemResponseDTO>> getMovementsByType(TypeMovement type){
+    public ResponseEntity<List<MovementItemResponseDTO>> getMovementsByType(TypeInventoryMovement type){
         List<MovementItemResponseDTO> typeList = service.getMovementsByType(type);
         return ResponseEntity.ok(typeList);
     }

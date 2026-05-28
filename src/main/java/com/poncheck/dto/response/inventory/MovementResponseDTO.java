@@ -4,10 +4,10 @@ import com.poncheck.dto.response.product.ProductMovementResponseDTO;
 import com.poncheck.dto.response.sales.SaleMovementResponseDTO;
 import com.poncheck.dto.response.user.UserMovementResponseDTO;
 import com.poncheck.entity.Movement;
-import com.poncheck.enums.TypeMovement;
+import com.poncheck.enums.TypeInventoryMovement;
 
 public record MovementResponseDTO(
-            TypeMovement typeMovement,
+            TypeInventoryMovement typeInventoryMovement,
             int quantity,
             ProductMovementResponseDTO product,
             UserMovementResponseDTO user,
@@ -17,7 +17,7 @@ public record MovementResponseDTO(
 ) {
     public MovementResponseDTO(Movement movement){
         this(
-                movement.getTypeMovement(),
+                movement.getTypeInventoryMovement(),
                 movement.getQuantity(),
                 new ProductMovementResponseDTO(movement.getProduct()),
                 new UserMovementResponseDTO(movement.getUser()),

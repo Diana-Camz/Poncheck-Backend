@@ -45,6 +45,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInsufficientStockException(InsufficientStockException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResourceId(),
+                HttpStatus.BAD_REQUEST.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(ResourceDisabledException.class)
+    public ResponseEntity<ErrorResponseDTO> handleResourceDisabledException(ResourceDisabledException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResourceId(),
+                HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
 
     //GENERIC EXCEPTIONS
     @ExceptionHandler(DataIntegrityViolationException.class)

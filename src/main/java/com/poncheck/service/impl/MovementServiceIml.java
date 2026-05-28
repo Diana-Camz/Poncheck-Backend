@@ -9,6 +9,7 @@ import com.poncheck.entity.Product;
 import com.poncheck.entity.Sales;
 import com.poncheck.entity.User;
 import com.poncheck.enums.TypeMovement;
+import com.poncheck.exception.ResourceDisabledException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.MovementRepository;
 import com.poncheck.repository.ProductRepository;
@@ -17,6 +18,7 @@ import com.poncheck.repository.UserRepository;
 import com.poncheck.service.MovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -55,6 +57,7 @@ public class MovementServiceIml implements MovementService {
         return new MovementResponseDTO(movement);
     }
 
+    @Transactional
     @Override
     public List<MovementItemResponseDTO> createMovement(CreateMovementRequestDTO data) {
         User user = userRepository.findById(data.userId())
@@ -73,6 +76,14 @@ public class MovementServiceIml implements MovementService {
         List<Movement> movements = data.products().stream().map((item) -> {
             Product product = productRepository.findById(item.productId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product  Not Found", "product", item.productId()));
+            if(!product.getActive()){
+                throw new ResourceDisabledException("Product is disabled", product.getId());
+            }
+            if (data.type().isAddsStock()) {
+                product.increaseStock(item.quantity());
+            } else {
+                product.decreaseStock(item.quantity());
+            }
             return new Movement(
                     data.type(),
                     item.quantity(),
@@ -82,6 +93,7 @@ public class MovementServiceIml implements MovementService {
                     null,
                     null
             );
+
         }).toList();
         List<Movement> savedMovements = repository.saveAll(movements);
 

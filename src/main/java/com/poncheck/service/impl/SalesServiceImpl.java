@@ -8,6 +8,7 @@ import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
 import com.poncheck.enums.SaleStatus;
 import com.poncheck.enums.TypeMovement;
+import com.poncheck.exception.ResourceDisabledException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.*;
 import com.poncheck.service.SalesService;
@@ -68,16 +69,17 @@ public class SalesServiceImpl implements SalesService {
                 user
         );
 
-
-
         List<SaleItemRequestDTO> items = data.items();
          for(SaleItemRequestDTO item : items) {
             Product product = productRepository.findById(item.productId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
-             BigDecimal unitPrice = product.getPrice();
+            if(!product.getActive()){
+                throw new ResourceDisabledException("Product is disabled", product.getId());
+            }
+            BigDecimal unitPrice = product.getPrice();
             quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-          total = total.add(subtotal);
+            total = total.add(subtotal);
 
             SaleItem saleItem = new SaleItem(
                     quantity,
@@ -85,9 +87,8 @@ public class SalesServiceImpl implements SalesService {
                     subtotal,
                     product
             );
-
             sale.addSaleItem(saleItem);
-             Movement movement = new Movement(
+            Movement movement = new Movement(
                      TypeMovement.SALE,
                      quantity,
                      data.description(),
@@ -97,6 +98,7 @@ public class SalesServiceImpl implements SalesService {
                      null
              );
             movementRepository.save(movement);
+            product.decreaseStock(quantity);
         };
 
         sale.setTotal(total);
@@ -147,6 +149,7 @@ public class SalesServiceImpl implements SalesService {
             );
 
             movementRepository.save(movement);
+            product.increaseStock(item.getQuantity());
         }
         repository.save(sale);
     }

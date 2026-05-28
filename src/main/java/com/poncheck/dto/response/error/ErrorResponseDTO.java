@@ -13,4 +13,10 @@ public record ErrorResponseDTO(
     public ErrorResponseDTO(String message, int status){
         this(message, null, null, status);
     }
+
+    public ErrorResponseDTO(String message, Long resourceId, int status) {
+        this(
+                message, null,resourceId, status
+        );
+    }
 }

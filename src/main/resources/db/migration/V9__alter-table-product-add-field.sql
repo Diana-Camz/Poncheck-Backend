@@ -1,0 +1,2 @@
+ALTER TABLE product
+    ADD COLUMN stock int NOT NULL DEFAULT 0;

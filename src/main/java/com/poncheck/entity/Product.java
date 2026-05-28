@@ -3,6 +3,7 @@ package com.poncheck.entity;
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.enums.PoncheBase;
 import com.poncheck.enums.ProductSize;
+import com.poncheck.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,6 +31,7 @@ public class Product {
             String code) {
         this.name = name;
         this.code = code;
+        this.stock = 0;
         this.price = price;
         this.flavor = flavor;
         this.description = description;
@@ -49,6 +51,9 @@ public class Product {
 
     @Column(nullable = false,  unique = true, length = 100)
     private String code;
+
+    @Column(nullable = false)
+    private int stock;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -108,6 +113,17 @@ public class Product {
         if(category != null){
             this.category = category;
         }
+    }
+
+    public void increaseStock(int quantity){
+        this.stock += quantity;
+    }
+
+    public void decreaseStock(int quantity){
+        if(this.stock < quantity){
+            throw new InsufficientStockException("Insufficient stock", this.id);
+        }
+        this.stock -= quantity;
     }
 
     public void updateActive(Boolean active){

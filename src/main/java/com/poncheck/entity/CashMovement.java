@@ -1,7 +1,9 @@
 package com.poncheck.entity;
 
+import com.poncheck.enums.CashRegisterStatus;
 import com.poncheck.enums.TypeCashMovement;
 import com.poncheck.enums.TypeInventoryMovement;
+import com.poncheck.exception.InvalidCashMovementException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,19 +25,19 @@ public class CashMovement {
     public CashMovement(
         TypeCashMovement typeCashMovement,
         BigDecimal amount,
-        String description,
         User user,
         Sales sale,
         CancelledSale cancelledSale,
-        CashRegister cashRegister
+        CashRegister cashRegister,
+        String description
     ){
         this.typeCashMovement = typeCashMovement;
         this.amount = amount;
-        this.description = description;
         this.user = user;
         this.sale = sale;
         this.cancelledSale = cancelledSale;
         this.cashRegister = cashRegister;
+        this.description = description;
     }
 
     @Id
@@ -54,7 +56,7 @@ public class CashMovement {
     @Column(nullable = false, updatable = false, name = "movement_at")
     private LocalDateTime movementAt;
 
-    @Column(length = 200)
+    @Column(nullable = false, length = 200)
     private String description;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -73,4 +75,20 @@ public class CashMovement {
     @JoinColumn(name = "cr_id", nullable = false)
     private CashRegister cashRegister;
 
+    public void updateMovement(String description, BigDecimal amount){
+        if(description != null){
+            this.description = description;
+        }
+        if(amount == null){
+            return;
+        }
+        if(this.cashRegister.getStatus() == CashRegisterStatus.CLOSED){
+            throw new InvalidCashMovementException("Cash movement cannot be edited when cash register is closed");
+        }
+        if(!this.typeCashMovement.isManualAllowed()){
+            throw new InvalidCashMovementException("Movements of type Sale or Refund cannot be edited manually");
+        }
+
+        this.amount = amount;
+    }
 }

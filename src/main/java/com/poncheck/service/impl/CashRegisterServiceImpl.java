@@ -8,6 +8,7 @@ import com.poncheck.entity.CashRegister;
 import com.poncheck.entity.User;
 import com.poncheck.enums.CashRegisterStatus;
 import com.poncheck.exception.InvalidCashRegisterException;
+import com.poncheck.exception.InvalidDateRangeException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CashRegisterRepository;
 import com.poncheck.repository.UserRepository;
@@ -78,6 +79,9 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public List<CashRegisterResponseDTO> getRegistersByDateRange(LocalDateTime start, LocalDateTime end){
+        if (start.isAfter(end)) {
+            throw new InvalidDateRangeException("Start date cannot be after end date");
+        }
         List<CashRegister> registerList = repository.findByOpenedAtBetween(start, end);
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 
@@ -85,6 +89,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public List<CashRegisterResponseDTO> getRegistersOpenedByUser(Long id){
+        userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
         List<CashRegister> registerList = repository.findByOpenedBy_id(id);
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 
@@ -92,6 +98,8 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public List<CashRegisterResponseDTO> getRegistersClosedByUser(Long id){
+        userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
         List<CashRegister> registerList = repository.findByClosedBy_id(id);
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 

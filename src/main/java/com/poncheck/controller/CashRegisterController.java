@@ -43,12 +43,13 @@ public class CashRegisterController {
         return ResponseEntity.ok(register);
     }
 
+    @GetMapping("/{id}")
     public ResponseEntity<CashRegisterResponseDTO> getRegisterById(@PathVariable Long id){
         CashRegisterResponseDTO register = service.getRegisterById(id);
         return ResponseEntity.ok(register);
     }
 
-    @GetMapping
+    @GetMapping("/date-range")
     public ResponseEntity<List<CashRegisterResponseDTO>> getRegistersByDateRange(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end){
         List<CashRegisterResponseDTO> registerList = service.getRegistersByDateRange(start, end);
         return ResponseEntity.ok(registerList);

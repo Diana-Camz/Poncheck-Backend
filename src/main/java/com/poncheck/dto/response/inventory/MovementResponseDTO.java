@@ -6,9 +6,12 @@ import com.poncheck.dto.response.user.UserMovementResponseDTO;
 import com.poncheck.entity.Movement;
 import com.poncheck.enums.TypeInventoryMovement;
 
+import java.time.LocalDateTime;
+
 public record MovementResponseDTO(
             TypeInventoryMovement typeInventoryMovement,
             int quantity,
+            LocalDateTime movementAt,
             ProductMovementResponseDTO product,
             UserMovementResponseDTO user,
             SaleMovementResponseDTO sale,
@@ -19,6 +22,7 @@ public record MovementResponseDTO(
         this(
                 movement.getTypeInventoryMovement(),
                 movement.getQuantity(),
+                movement.getMovementAt(),
                 new ProductMovementResponseDTO(movement.getProduct()),
                 new UserMovementResponseDTO(movement.getUser()),
                 movement.getSale() != null

@@ -13,7 +13,6 @@ public record CashRegisterResponseDTO(
         @JsonInclude(JsonInclude.Include.NON_NULL)
         UserCashResponseDTO closedBy,
         BigDecimal openingAmount,
-        @JsonInclude(JsonInclude.Include.NON_NULL)
         BigDecimal expectedAmount,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         BigDecimal difference,
@@ -26,9 +25,11 @@ public record CashRegisterResponseDTO(
     public CashRegisterResponseDTO(CashRegister register){
         this (
                 new UserCashResponseDTO(register.getOpenedBy()),
-                new UserCashResponseDTO(register.getClosedBy()),
+                (register.getClosedBy() != null)
+                ? new UserCashResponseDTO(register.getClosedBy())
+                : null,
                 register.getOpeningAmount(),
-                register.getRealAmount(),
+                register.getExpectedAmount(),
                 register.getDifference(),
                 register.getOpenedAt(),
                 register.getClosedAt(),

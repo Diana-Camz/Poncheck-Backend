@@ -3,6 +3,7 @@ package com.poncheck.controller;
 import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
+import com.poncheck.dto.response.cash.CashRegisterResponseDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.Sales;
 import com.poncheck.enums.SaleStatus;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -33,10 +35,16 @@ public class SaleController {
         return ResponseEntity.ok(sale);
     }
 
-    @GetMapping
+    @GetMapping("/status")
     public ResponseEntity<List<SalesResponseDTO>> getSalesByStatus(@RequestParam SaleStatus status){
         List<SalesResponseDTO> salesList = service.getSalesByStatus(status);
         return ResponseEntity.ok(salesList);
+    }
+
+    @GetMapping("/date-range")
+    public ResponseEntity<List<SalesResponseDTO>> getSalesByDateRange(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end){
+        List<SalesResponseDTO> registerList = service.getSalesByDateRange(start, end);
+        return ResponseEntity.ok(registerList);
     }
 
     @PostMapping

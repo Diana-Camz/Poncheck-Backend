@@ -9,6 +9,7 @@ import com.poncheck.entity.Product;
 import com.poncheck.entity.Sales;
 import com.poncheck.entity.User;
 import com.poncheck.enums.TypeInventoryMovement;
+import com.poncheck.exception.InvalidMovementException;
 import com.poncheck.exception.ResourceDisabledException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.MovementRepository;
@@ -40,12 +41,16 @@ public class MovementServiceIml implements MovementService {
 
     @Override
     public List<MovementItemResponseDTO> getMovementsByProduct(Long id){
+        productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
         List<Movement> productList = repository.findMovementsByProductId(id);
         return productList.stream().map(MovementItemResponseDTO::new).toList();
     }
 
     @Override
     public List<MovementItemResponseDTO> getMovementsBySale(Long id){
+        saleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", id));
         List<Movement> saleList = repository.findMovementsBySale_Id(id);
         return saleList.stream().map(MovementItemResponseDTO::new).toList();
     }
@@ -78,6 +83,10 @@ public class MovementServiceIml implements MovementService {
                     .orElseThrow(() -> new ResourceNotFoundException("Product  Not Found", "product", item.productId()));
             if(!product.getActive()){
                 throw new ResourceDisabledException("Product is disabled", product.getId());
+            }
+
+            if(!data.type().isManualAllowed()){
+                throw new InvalidMovementException("Movements of type Sale or Sale Cancelled are not permitted manually");
             }
             if (data.type().isAddsStock()) {
                 product.increaseStock(item.quantity());

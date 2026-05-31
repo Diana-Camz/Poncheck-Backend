@@ -96,6 +96,9 @@ public class SalesServiceImpl implements SalesService {
             if(!product.getActive()){
                 throw new ResourceDisabledException("Product is disabled", product.getId());
             }
+            if(!product.getCategory().getActive()){
+                throw new ResourceDisabledException("Category is disabled", product.getCategory().getId());
+            }
             BigDecimal unitPrice = product.getPrice();
              Integer quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));

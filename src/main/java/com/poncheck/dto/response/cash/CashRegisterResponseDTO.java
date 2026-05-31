@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CashRegisterResponseDTO(
+        Long id,
         UserCashResponseDTO openedBy,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         UserCashResponseDTO closedBy,
@@ -24,6 +25,7 @@ public record CashRegisterResponseDTO(
 ) {
     public CashRegisterResponseDTO(CashRegister register){
         this (
+                register.getId(),
                 new UserCashResponseDTO(register.getOpenedBy()),
                 (register.getClosedBy() != null)
                 ? new UserCashResponseDTO(register.getClosedBy())

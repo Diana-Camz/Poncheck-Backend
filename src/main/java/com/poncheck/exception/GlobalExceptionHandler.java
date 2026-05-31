@@ -17,14 +17,51 @@ public class GlobalExceptionHandler {
     // CUSTOM EXCEPTIONS
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException exception){
-        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.NOT_FOUND.value());
+
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResource(),
+                exception.getResourceId(),
+                HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(DuplicateFieldException.class)
     public ResponseEntity<ErrorResponseDTO> handleDuplicateField(DuplicateFieldException exception){
         ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
-        return ResponseEntity.status(HttpStatus.CONFLICT.value()).body(error);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(SaleAlreadyCancelledException.class)
+    public ResponseEntity<ErrorResponseDTO> handleSaleAlreadyCancelled(SaleAlreadyCancelledException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidSaleStateException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidSaleStateException(InvalidSaleStateException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInsufficientStockException(InsufficientStockException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResourceId(),
+                HttpStatus.BAD_REQUEST.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(ResourceDisabledException.class)
+    public ResponseEntity<ErrorResponseDTO> handleResourceDisabledException(ResourceDisabledException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getMessage(),
+                exception.getResourceId(),
+                HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
 

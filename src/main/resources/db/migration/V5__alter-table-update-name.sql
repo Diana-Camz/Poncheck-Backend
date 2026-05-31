@@ -1,0 +1,1 @@
+ALTER TABLE products_sale RENAME TO sale_item;

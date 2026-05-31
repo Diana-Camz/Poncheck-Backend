@@ -1,19 +1,15 @@
 package com.poncheck.exception;
 
-
 import lombok.Getter;
 
 @Getter
-public class ResourceNotFoundException extends RuntimeException {
-    private final String resource;
+public class InsufficientStockException extends RuntimeException {
     private final Long resourceId;
-    public ResourceNotFoundException(
+    public InsufficientStockException(
             String message,
-            String resource,
             Long resourceId
-    ){
+    ) {
         super(message);
-        this.resource = resource;
         this.resourceId = resourceId;
     }
 }

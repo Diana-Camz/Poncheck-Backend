@@ -37,11 +37,11 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByUsername(data.username())
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
-        String jwtoken = jwtService.generateToken(user);
+        String jwtToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         user.setRefreshToken(refreshToken);
         userRepository.save(user);
-        return new AuthResponseDTO(user, jwtoken, refreshToken);
+        return new AuthResponseDTO(user, jwtToken, refreshToken);
     }
 
     //Creates new User

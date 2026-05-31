@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO getProductById(Long productId) {
         Product product = repository.findById(productId)
-               .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+               .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", productId));
         return new ProductResponseDTO(product);
     }
 
@@ -71,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO createProduct(CreateProductRequestDTO productData){
         Category category = categoryRepository.findById(productData.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category ID Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", productData.categoryId()));
         String code = generateProductCode(category);
         Product product = new Product(
                 productData.name(),
@@ -91,14 +91,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO data) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
         if(repository.existsByCode(data.code())){
                 throw new DuplicateFieldException("A product with this code already exists");
         }
         Category category = null;
         if(data.categoryId() != null){
             category = categoryRepository.findById(data.categoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", data.categoryId()));
         }
 
         product.updateData(
@@ -118,7 +118,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO updateActive(Long id, UpdateActiveProductRequestDTO status){
         Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
 
         product.updateActive(status.active());
 
@@ -129,7 +129,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id){
         Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
         repository.delete(product);
     }
 

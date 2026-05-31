@@ -51,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO getCategoryById(Long id) {
         Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
         return new CategoryResponseDTO(category);
     }
 
@@ -71,7 +71,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO data) {
         Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
         String normalizedName = data.name().trim().toLowerCase();
         if(repository.existsByNameIgnoreCase(normalizedName)){
             throw new DuplicateFieldException("A category with this name already exists");
@@ -85,7 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO updateActive(Long id, UpdateActiveCategoryDTO status) {
         Category category = repository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", id));
         category.updateActive(status.active());
         Category updatedStatus = repository.save(category);
         return new CategoryResponseDTO(updatedStatus);
@@ -95,7 +95,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(Long id) {
         Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
 
         repository.delete(category);
     }

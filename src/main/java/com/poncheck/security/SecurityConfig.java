@@ -42,7 +42,8 @@ public class SecurityConfig {
                  .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                  .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").hasAnyRole("ADMIN", "OWNER")
-                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout", "/api/v1/auth/refresh").authenticated()
+                         .requestMatchers("/api/v1/auth/logout").authenticated()
+                         .requestMatchers(HttpMethod.POST,"/api/v1/auth/refresh").authenticated()
                          .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/users/{id}/active").hasAnyRole("OWNER", "ADMIN")
                          .requestMatchers(HttpMethod.DELETE, "/api/v1/users/{id}").hasRole("ADMIN")
@@ -52,6 +53,7 @@ public class SecurityConfig {
                          .requestMatchers(HttpMethod.POST,"/api/v1/categories/", "/api/v1/categories/{id}/active").hasAnyRole("ADMIN", "OWNER")
                          .requestMatchers("/api/v1/categories/**").authenticated()
                          .requestMatchers("/api/v1/products/**").authenticated()
+                         .requestMatchers(HttpMethod.GET, "/api/v1/sales").authenticated()
                          .requestMatchers("/api/v1/sales/**").authenticated()
                          .requestMatchers("/api/v1/movements/**").authenticated()
                          .requestMatchers("/api/v1/registers/**").authenticated()

@@ -4,12 +4,14 @@ import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
+import com.poncheck.dto.response.cash.CashMovementResponseDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
+import com.poncheck.enums.CashRegisterStatus;
 import com.poncheck.enums.SaleStatus;
-import com.poncheck.enums.TypeMovement;
-import com.poncheck.exception.ResourceDisabledException;
-import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.enums.TypeCashMovement;
+import com.poncheck.enums.TypeInventoryMovement;
+import com.poncheck.exception.*;
 import com.poncheck.repository.*;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,10 +28,12 @@ import java.util.List;
 public class SalesServiceImpl implements SalesService {
 
     private final SalesRepository repository;
+    private final CashRegisterRepository registerRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final SaleItemRepository saleItemRepository;
     private final MovementRepository movementRepository;
+    private final CashMovementRepository cashMovementRepository;
 
     @Override
     public List<SalesResponseDTO> getAllSales(){
@@ -53,22 +58,37 @@ public class SalesServiceImpl implements SalesService {
         return new SalesResponseDTO(sale);
     }
 
+    @Override
+    public List<SalesResponseDTO> getSalesByDateRange(LocalDateTime start, LocalDateTime end){
+        if (start.isAfter(end)) {
+            throw new InvalidDateRangeException("Start date cannot be after end date");
+        }
+        List<Sales> salesList = repository.findByDateBetween(start, end);
+        return salesList.stream().map(SalesResponseDTO::new).toList();
+    }
+
     @Transactional
     @Override
     public SalesResponseDTO createSale(CreateSaleRequestDTO data){
+        CashRegister register = registerRepository
+                .findByStatus(CashRegisterStatus.OPEN)
+                .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
 
         BigDecimal total = BigDecimal.ZERO;
-        Integer quantity = 0;
 
         Sales sale = new Sales(
                 total,
                 data.paymentMethod(),
                 data.description(),
-                user
+                user,
+                register
         );
 
+        if (data.items() == null || data.items().isEmpty()) {
+            throw new InvalidSaleException("Sale must have at least one item");
+        }
         List<SaleItemRequestDTO> items = data.items();
          for(SaleItemRequestDTO item : items) {
             Product product = productRepository.findById(item.productId())
@@ -76,8 +96,11 @@ public class SalesServiceImpl implements SalesService {
             if(!product.getActive()){
                 throw new ResourceDisabledException("Product is disabled", product.getId());
             }
+            if(!product.getCategory().getActive()){
+                throw new ResourceDisabledException("Category is disabled", product.getCategory().getId());
+            }
             BigDecimal unitPrice = product.getPrice();
-            quantity = item.quantity();
+             Integer quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
             total = total.add(subtotal);
 
@@ -89,7 +112,7 @@ public class SalesServiceImpl implements SalesService {
             );
             sale.addSaleItem(saleItem);
             Movement movement = new Movement(
-                     TypeMovement.SALE,
+                     TypeInventoryMovement.SALE,
                      quantity,
                      data.description(),
                      user,
@@ -99,10 +122,23 @@ public class SalesServiceImpl implements SalesService {
              );
             movementRepository.save(movement);
             product.decreaseStock(quantity);
-        };
+         };
 
+
+        register.increaseExpectedAmount(total);
+        registerRepository.save(register);
         sale.setTotal(total);
         Sales saleSaved = repository.save(sale);
+        CashMovement cashMovement = new CashMovement(
+            TypeCashMovement.SALE,
+            total,
+            user,
+            saleSaved,
+            null,
+            register,
+            data.description()
+        );
+        cashMovementRepository.save(cashMovement);
         return new SalesResponseDTO(saleSaved);
     }
 
@@ -122,6 +158,9 @@ public class SalesServiceImpl implements SalesService {
     @Transactional
     @Override
     public void cancelSale(Long id, CancelSaleRequestDTO data) {
+        CashRegister register = registerRepository
+                .findByStatus(CashRegisterStatus.OPEN)
+                .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
         Sales sale = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
@@ -129,17 +168,16 @@ public class SalesServiceImpl implements SalesService {
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
         sale.cancelSale(
-                id,
                 user,
                 data.reason()
         );
+        Sales saleCancelled = repository.save(sale);
 
         List<SaleItem> itemsCancelled = saleItemRepository.findAllBySale_id(id);
         for(SaleItem item : itemsCancelled){
-            Product product = productRepository.findById(item.getProduct().getId())
-                    .orElseThrow((() -> new ResourceNotFoundException("Product Not Found", "product", item.getProduct().getId())));
+            Product product = item.getProduct();
             Movement movement = new Movement(
-                TypeMovement.SALE_CANCELLED,
+                TypeInventoryMovement.SALE_CANCELLED,
                     item.getQuantity(),
                     data.reason(),
                     user,
@@ -147,10 +185,22 @@ public class SalesServiceImpl implements SalesService {
                     sale,
                     null
             );
-
             movementRepository.save(movement);
             product.increaseStock(item.getQuantity());
         }
-        repository.save(sale);
+        register.decreaseExpectedAmount(saleCancelled.getTotal());
+        registerRepository.save(register);
+
+        CashMovement cashMovement = new CashMovement(
+                TypeCashMovement.SALE_CANCELLED,
+                saleCancelled.getTotal(),
+                user,
+                saleCancelled,
+                saleCancelled.getCancelled(),
+                register,
+                data.reason()
+        );
+
+        cashMovementRepository.save(cashMovement);
     }
 }

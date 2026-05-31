@@ -1,6 +1,6 @@
 package com.poncheck.entity;
 
-import com.poncheck.enums.TypeMovement;
+import com.poncheck.enums.TypeInventoryMovement;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class Movement {
 
     public Movement(
-            TypeMovement typeMovement,
+            TypeInventoryMovement typeInventoryMovement,
             int quantity,
             String description,
             User user,
@@ -25,7 +25,7 @@ public class Movement {
             Movement referenceMovement
 
     ){
-       this.typeMovement = typeMovement;
+       this.typeInventoryMovement = typeInventoryMovement;
        this.quantity = quantity;
        this.description = description;
        this.user = user;
@@ -41,7 +41,7 @@ public class Movement {
 
     @Column(nullable = false, name = "type")
     @Enumerated(EnumType.STRING)
-    private TypeMovement typeMovement;
+    private TypeInventoryMovement typeInventoryMovement;
 
     @Column(nullable = false)
     private int quantity;

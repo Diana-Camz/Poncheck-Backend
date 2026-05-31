@@ -17,8 +17,6 @@ public class GlobalExceptionHandler {
     // CUSTOM EXCEPTIONS
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException exception){
-
-
         ErrorResponseDTO error = new ErrorResponseDTO(
                 exception.getMessage(),
                 exception.getResource(),
@@ -64,6 +62,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InvalidCashMovementException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidCashMovementException(InvalidCashMovementException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidCashRegisterException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidCashRegisterException(InvalidCashRegisterException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidDateRangeException(InvalidDateRangeException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidMovementException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidMovementException(InvalidMovementException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidSaleException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidSaleException(InvalidSaleException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
     //GENERIC EXCEPTIONS
     @ExceptionHandler(DataIntegrityViolationException.class)

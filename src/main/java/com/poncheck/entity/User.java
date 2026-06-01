@@ -1,6 +1,7 @@
 package com.poncheck.entity;
 
 import com.poncheck.enums.Role;
+import com.poncheck.exception.InvalidUserBusinessException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,12 +26,15 @@ public class User implements UserDetails {
             String name,
             String username,
             String password,
-            Role role
+            Role role,
+            Business business
     ){
+        validateBusiness(role, business);
       this.name = name;
       this.username = username;
       this.password = password;
       this.role = role;
+      this.business = business;
     }
 
     @Id
@@ -56,20 +60,37 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id")
+    Business business;
+
+    private void validateBusiness(Role role, Business business) {
+        if ((role == Role.SELLER || role == Role.OWNER) && business == null) {
+            throw new InvalidUserBusinessException(
+                    "Sellers and Owners must belong to a business"
+            );
+        }
+    }
+
     public void updateUser(
             String name,
             String username,
-            Role role
+            Role role,
+            Business business
     ){
+        //Role finalRole = role != null ? role : this.role;
+        Business finalBusiness = business != null ? business : this.business;
+
+        validateBusiness(role, finalBusiness);
+
       if(name != null){
           this.name = name;
       }
       if(username != null){
           this.username = username;
       }
-      if(role != null){
-          this.role = role;
-      }
+        //this.role = finalRole;
+        this.business = finalBusiness;
     }
 
     public void inactiveUser(Boolean active){

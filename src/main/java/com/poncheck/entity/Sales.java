@@ -31,7 +31,8 @@ public class Sales {
             PaymentMethod paymentMethod,
             String description,
             User user,
-            CashRegister cashRegister
+            CashRegister cashRegister,
+            Business business
     ){
         this.total = total;
         this.paymentMethod = paymentMethod;
@@ -39,6 +40,7 @@ public class Sales {
         this.user = user;
         this.saleStatus = COMPLETED;
         this.cashRegister = cashRegister;
+        this.business = business;
     }
 
     @Id
@@ -77,6 +79,10 @@ public class Sales {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "cr_id", nullable = false)
     private CashRegister cashRegister;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
     public void addSaleItem(SaleItem saleItem){
         items.add(saleItem);

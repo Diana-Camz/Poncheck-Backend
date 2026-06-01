@@ -30,7 +30,7 @@ public class CancelledSale {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cancelation")
+    @Column(name = "id_cancellation")
     private Long id;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

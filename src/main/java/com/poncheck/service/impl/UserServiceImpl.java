@@ -3,6 +3,7 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.user.UpdateActiveUserRequestDTO;
 import com.poncheck.dto.request.user.UpdateUserRequestDTO;
 import com.poncheck.dto.response.user.UserResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
@@ -59,13 +60,16 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO updateUser(Long id, UpdateUserRequestDTO userData) {
         User user = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
+
+        Business business = user.getBusiness();
         if(repository.existsUserByUsername(userData.username())){
             throw new DuplicateFieldException("A user with this username already exists");
         }
         user.updateUser(
                 userData.name(),
                 userData.username(),
-                userData.role()
+                null,
+                business
         );
 
         User userSaved = repository.save(user);

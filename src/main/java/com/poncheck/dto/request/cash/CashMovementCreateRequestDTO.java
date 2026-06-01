@@ -14,8 +14,6 @@ public record CashMovementCreateRequestDTO(
        @Positive
        @NotNull
        BigDecimal amount,
-       @NotNull
-       Long userId,
        Long saleId,
        Long cancelledSaleId,
        @NotNull

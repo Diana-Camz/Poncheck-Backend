@@ -4,6 +4,7 @@ import com.poncheck.dto.request.cash.CashRegisterCloseRequestDTO;
 import com.poncheck.dto.request.cash.CashRegisterOpenRequestDTO;
 import com.poncheck.dto.request.cash.UpdateRegisterRequestDTO;
 import com.poncheck.dto.response.cash.CashRegisterResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.CashRegister;
 import com.poncheck.entity.User;
 import com.poncheck.enums.CashRegisterStatus;
@@ -12,6 +13,7 @@ import com.poncheck.exception.InvalidDateRangeException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CashRegisterRepository;
 import com.poncheck.repository.UserRepository;
+import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.CashRegisterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     private final CashRegisterRepository repository;
     private final UserRepository userRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     @Override
     public CashRegisterResponseDTO openRegister(CashRegisterOpenRequestDTO data) {
@@ -34,10 +37,13 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
+        Business business = user.getBusiness();
+
         CashRegister cashRegister = new CashRegister(
                 data.openingAmount(),
                 user,
-                data.description()
+                data.description(),
+                business
         );
         cashRegister.openRegister();
         CashRegister registerOpened = repository.save(cashRegister);
@@ -49,8 +55,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         CashRegister cashRegister = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", id));
 
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
+        User user = authenticatedUserService.getCurrentUser();
         cashRegister.setClosedBy(user);
         cashRegister.setRealAmount(data.realAmount());
         cashRegister.setDescription(data.description());

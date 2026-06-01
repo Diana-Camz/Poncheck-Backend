@@ -16,6 +16,7 @@ import com.poncheck.repository.MovementRepository;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.SalesRepository;
 import com.poncheck.repository.UserRepository;
+import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.MovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,9 @@ import java.util.List;
 public class MovementServiceIml implements MovementService {
 
     private final MovementRepository repository;
-    private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final SalesRepository saleRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
 
     @Override
@@ -65,8 +66,7 @@ public class MovementServiceIml implements MovementService {
     @Transactional
     @Override
     public List<MovementItemResponseDTO> createMovement(CreateMovementRequestDTO data) {
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
+        User user = authenticatedUserService.getCurrentUser();
         Sales sale = null;
         if (data.saleId() != null) {
             sale = saleRepository.findById(data.saleId())

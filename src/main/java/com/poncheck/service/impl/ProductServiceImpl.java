@@ -4,12 +4,15 @@ import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.Category;
 import com.poncheck.entity.Product;
+import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.CategoryRepository;
+import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +24,7 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
-
+    private final AuthenticatedUserService authenticatedUserService;
     //Retrieves a product by its ID
     @Override
     public ProductResponseDTO getProductById(Long productId) {
@@ -72,6 +75,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO createProduct(CreateProductRequestDTO productData){
         Category category = categoryRepository.findById(productData.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", productData.categoryId()));
+        User user = authenticatedUserService.getCurrentUser();
+        Business business = user.getBusiness();
         String code = generateProductCode(category);
         Product product = new Product(
                 productData.name(),
@@ -81,7 +86,9 @@ public class ProductServiceImpl implements ProductService {
                 productData.productSize(),
                 productData.poncheBase(),
                 category,
-                code);
+                code,
+                business
+        );
 
         Product savedProduct = repository.save(product);
         return new ProductResponseDTO(savedProduct);

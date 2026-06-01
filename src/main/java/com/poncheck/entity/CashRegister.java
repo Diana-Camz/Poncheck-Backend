@@ -27,13 +27,15 @@ public class CashRegister {
     public CashRegister(
             BigDecimal openingAmount,
             User openBy,
-            String description
+            String description,
+            Business business
     ){
         this.openingAmount = openingAmount;
         this.expectedAmount = openingAmount;
         this.openedBy = openBy;
         this.description = description;
         this.status = CashRegisterStatus.OPEN;
+        this.business = business;
     }
 
     @Id
@@ -71,6 +73,10 @@ public class CashRegister {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "closed_by")
     private User closedBy;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
     public void openRegister(){
             this.status = CashRegisterStatus.OPEN;

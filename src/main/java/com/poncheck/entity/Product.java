@@ -28,7 +28,9 @@ public class Product {
             ProductSize productSize,
             PoncheBase poncheBase,
             Category category,
-            String code) {
+            String code,
+            Business business
+            ) {
         this.name = name;
         this.code = code;
         this.stock = 0;
@@ -38,6 +40,7 @@ public class Product {
         this.productSize = productSize;
         this.poncheBase = poncheBase;
         this.category = category;
+        this.business = business;
         this.active = true;
     }
 
@@ -77,6 +80,10 @@ public class Product {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
 
     public void updateData(

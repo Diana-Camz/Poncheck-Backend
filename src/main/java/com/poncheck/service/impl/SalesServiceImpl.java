@@ -13,6 +13,7 @@ import com.poncheck.enums.TypeCashMovement;
 import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.exception.*;
 import com.poncheck.repository.*;
+import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,6 +35,7 @@ public class SalesServiceImpl implements SalesService {
     private final SaleItemRepository saleItemRepository;
     private final MovementRepository movementRepository;
     private final CashMovementRepository cashMovementRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     @Override
     public List<SalesResponseDTO> getAllSales(){
@@ -73,9 +75,8 @@ public class SalesServiceImpl implements SalesService {
         CashRegister register = registerRepository
                 .findByStatus(CashRegisterStatus.OPEN)
                 .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
-
+        User user = authenticatedUserService.getCurrentUser();
+        Business business = user.getBusiness();
         BigDecimal total = BigDecimal.ZERO;
 
         Sales sale = new Sales(
@@ -83,7 +84,8 @@ public class SalesServiceImpl implements SalesService {
                 data.paymentMethod(),
                 data.description(),
                 user,
-                register
+                register,
+                business
         );
 
         if (data.items() == null || data.items().isEmpty()) {
@@ -164,8 +166,7 @@ public class SalesServiceImpl implements SalesService {
         Sales sale = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
+        User user = authenticatedUserService.getCurrentUser();
 
         sale.cancelSale(
                 user,

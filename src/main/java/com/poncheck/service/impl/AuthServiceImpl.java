@@ -4,8 +4,12 @@ import com.poncheck.dto.request.auth.AuthLoginRequestDTO;
 import com.poncheck.dto.request.auth.AuthRegisterRequestDTO;
 import com.poncheck.dto.response.auth.AuthResponseDTO;
 import com.poncheck.dto.response.token.TokenResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
+import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
+import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.repository.BusinessRepository;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.AuthService;
 import com.poncheck.service.JwtService;
@@ -22,6 +26,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -52,12 +57,18 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String hashedPassword = passwordEncoder.encode(userData.password());
+        Business business = null;
+        if(userData.businessId() != null){
+            business = businessRepository.findById(userData.businessId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", userData.businessId()));
+        }
 
         User user = new User(
                 userData.name(),
                 userData.username(),
                 hashedPassword,
-                userData.role()
+                userData.role(),
+                business
         );
 
         String jwtToken = jwtService.generateToken(user);

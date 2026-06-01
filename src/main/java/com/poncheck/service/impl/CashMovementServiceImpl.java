@@ -12,6 +12,7 @@ import com.poncheck.exception.InvalidCashRegisterException;
 import com.poncheck.exception.InvalidDateRangeException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.*;
+import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.CashMovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     private final UserRepository userRepository;
     private final CashRegisterRepository registerRepository;
     private final CancelledSaleRepository cancelledSaleRepository;
+    private final AuthenticatedUserService authenticatedUserService;
 
     @Override
     public List<CashMovementResponseDTO> getMovementsByType(TypeCashMovement type){
@@ -81,8 +83,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     @Transactional
     @Override
     public CashMovementResponseDTO createMovement(CashMovementCreateRequestDTO data) {
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
+        User user = authenticatedUserService.getCurrentUser();
         CashRegister cashRegister = registerRepository.findById(data.cashRegisterId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cash Register Not Found", "cash_register", data.cashRegisterId()));
 

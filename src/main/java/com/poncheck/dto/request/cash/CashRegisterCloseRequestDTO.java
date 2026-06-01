@@ -7,8 +7,6 @@ import java.math.BigDecimal;
 
 public record CashRegisterCloseRequestDTO(
         @NotNull
-        Long userId,
-        @NotNull
         @Positive
         BigDecimal realAmount,
         String description

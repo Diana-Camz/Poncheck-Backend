@@ -14,6 +14,7 @@ import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.exception.*;
 import com.poncheck.repository.*;
 import com.poncheck.service.AuthenticatedUserService;
+import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,6 +37,7 @@ public class SalesServiceImpl implements SalesService {
     private final MovementRepository movementRepository;
     private final CashMovementRepository cashMovementRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     @Override
     public List<SalesResponseDTO> getAllSales(){
@@ -76,7 +78,7 @@ public class SalesServiceImpl implements SalesService {
                 .findByStatus(CashRegisterStatus.OPEN)
                 .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
         User user = authenticatedUserService.getCurrentUser();
-        Business business = user.getBusiness();
+        Business business = businessContextService.getBusiness(data.businessId());
         BigDecimal total = BigDecimal.ZERO;
 
         Sales sale = new Sales(
@@ -102,7 +104,7 @@ public class SalesServiceImpl implements SalesService {
                 throw new ResourceDisabledException("Category is disabled", product.getCategory().getId());
             }
             BigDecimal unitPrice = product.getPrice();
-             Integer quantity = item.quantity();
+            Integer quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
             total = total.add(subtotal);
 

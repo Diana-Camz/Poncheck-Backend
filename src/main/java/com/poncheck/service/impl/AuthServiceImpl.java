@@ -8,12 +8,16 @@ import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
 import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
+import com.poncheck.exception.InvalidUserBusinessException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.BusinessRepository;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.AuthService;
+import com.poncheck.service.AuthenticatedUserService;
+import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
     private final BusinessRepository businessRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     @Override
     public AuthResponseDTO login(AuthLoginRequestDTO data) {
@@ -58,9 +64,24 @@ public class AuthServiceImpl implements AuthService {
 
         String hashedPassword = passwordEncoder.encode(userData.password());
         Business business = null;
-        if(userData.businessId() != null){
-            business = businessRepository.findById(userData.businessId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", userData.businessId()));
+        User currentUser = authenticatedUserService.getCurrentUser();
+        if(currentUser.getRole() == Role.OWNER && userData.role() == Role.ADMIN){
+            throw new InvalidUserBusinessException("Owners cannot create users with role Admin");
+        }
+
+        if(currentUser.getRole() == Role.OWNER){
+            business = businessContextService.getBusiness(currentUser.getBusiness().getId());
+        }
+
+        boolean rolToRegister = userData.role() == Role.OWNER || userData.role() == Role.SELLER;
+        if (currentUser.getRole() == Role.ADMIN && rolToRegister && userData.businessId() == null) {
+            throw new InvalidUserBusinessException(
+                    "Sellers and Owners must belong to a business"
+            );
+        }
+
+        if (currentUser.getRole() == Role.ADMIN && rolToRegister) {
+                business = businessContextService.getBusiness(userData.businessId());
         }
 
         User user = new User(

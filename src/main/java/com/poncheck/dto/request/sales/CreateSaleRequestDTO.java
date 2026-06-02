@@ -11,6 +11,7 @@ public record CreateSaleRequestDTO(
         PaymentMethod paymentMethod,
         String description,
         @NotEmpty
-        List<SaleItemRequestDTO> items
+        List<SaleItemRequestDTO> items,
+        Long businessId
 ) {
 }

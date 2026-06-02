@@ -11,6 +11,7 @@ import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CategoryRepository;
 import com.poncheck.service.AuthenticatedUserService;
+import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
-    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     //Retrieves all categories
     @Override
@@ -65,8 +66,8 @@ public class CategoryServiceImpl implements CategoryService {
         if(repository.existsByNameIgnoreCase(normalizedName)){
             throw new DuplicateFieldException("A category with this name already exists");
         }
-        User user = authenticatedUserService.getCurrentUser();
-        Business business = user.getBusiness();
+
+        Business business = businessContextService.getBusiness(data.businessId());
         Category category = new Category(data.name().trim(), business);
         Category categorySaved = repository.save(category);
         return new CategoryResponseDTO(categorySaved);

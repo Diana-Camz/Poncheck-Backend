@@ -14,6 +14,7 @@ import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CashRegisterRepository;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.AuthenticatedUserService;
+import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.CashRegisterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     private final CashRegisterRepository repository;
     private final UserRepository userRepository;
+    private final BusinessContextService businessContextService;
     private final AuthenticatedUserService authenticatedUserService;
 
     @Override
@@ -37,7 +39,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         User user = userRepository.findById(data.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
 
-        Business business = user.getBusiness();
+        Business business = businessContextService.getBusiness(data.businessId());
 
         CashRegister cashRegister = new CashRegister(
                 data.openingAmount(),

@@ -13,6 +13,7 @@ import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.CategoryRepository;
 import com.poncheck.service.AuthenticatedUserService;
+import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,8 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
-    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
+
     //Retrieves a product by its ID
     @Override
     public ProductResponseDTO getProductById(Long productId) {
@@ -75,8 +77,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO createProduct(CreateProductRequestDTO productData){
         Category category = categoryRepository.findById(productData.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", productData.categoryId()));
-        User user = authenticatedUserService.getCurrentUser();
-        Business business = user.getBusiness();
+
+        Business business = businessContextService.getBusiness(productData.businessId());
         String code = generateProductCode(category);
         Product product = new Product(
                 productData.name(),

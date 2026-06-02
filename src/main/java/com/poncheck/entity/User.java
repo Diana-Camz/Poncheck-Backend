@@ -29,7 +29,6 @@ public class User implements UserDetails {
             Role role,
             Business business
     ){
-        validateBusiness(role, business);
       this.name = name;
       this.username = username;
       this.password = password;
@@ -64,7 +63,7 @@ public class User implements UserDetails {
     @JoinColumn(name = "business_id")
     Business business;
 
-    private void validateBusiness(Role role, Business business) {
+    public void validateBusiness(Role role, Business business) {
         if ((role == Role.SELLER || role == Role.OWNER) && business == null) {
             throw new InvalidUserBusinessException(
                     "Sellers and Owners must belong to a business"

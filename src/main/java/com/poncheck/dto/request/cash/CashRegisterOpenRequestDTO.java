@@ -11,6 +11,7 @@ public record CashRegisterOpenRequestDTO(
         @NotNull
         @Positive
         BigDecimal openingAmount,
-        String description
+        String description,
+        Long businessId
 ) {
 }

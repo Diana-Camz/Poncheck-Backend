@@ -20,6 +20,8 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
+    private final AuthenticatedUserService authenticatedUserService;
+
 
     //Retrieves all users
     @Override
@@ -33,7 +35,9 @@ public class UserServiceImpl implements UserService {
     //Retrieves all active users
     @Override
     public List<UserResponseDTO> getActiveUsers() {
-        List<User> users = repository.findByActiveTrue();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List<User> users = repository.findByActiveTrueAndBusinessId(business.getId());
         return users.stream()
                 .map(UserResponseDTO::new)
                 .toList();
@@ -42,7 +46,9 @@ public class UserServiceImpl implements UserService {
     //Retrieves all inactive users
     @Override
     public List<UserResponseDTO> getInactiveUsers() {
-        List<User> users = repository.findByActiveFalse();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List<User> users = repository.findByActiveFalseAndBusinessId(business.getId());
         return users.stream()
                 .map(UserResponseDTO::new)
                 .toList();
@@ -62,7 +68,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
 
         Business business = user.getBusiness();
-        if(repository.existsUserByUsername(userData.username())){
+        if(repository.existsByUsername(userData.username())){
             throw new DuplicateFieldException("A user with this username already exists");
         }
         user.updateUser(

@@ -4,20 +4,13 @@ import com.poncheck.dto.request.sales.CancelSaleRequestDTO;
 import com.poncheck.dto.request.sales.CreateSaleRequestDTO;
 import com.poncheck.dto.request.sales.SaleItemRequestDTO;
 import com.poncheck.dto.request.sales.UpdateSaleRequestDTO;
-import com.poncheck.dto.response.cash.CashMovementResponseDTO;
 import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
-import com.poncheck.enums.CashRegisterStatus;
-import com.poncheck.enums.SaleStatus;
-import com.poncheck.enums.TypeCashMovement;
-import com.poncheck.enums.TypeInventoryMovement;
+import com.poncheck.enums.*;
 import com.poncheck.exception.*;
 import com.poncheck.repository.*;
-import com.poncheck.service.AuthenticatedUserService;
-import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.SalesService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +24,6 @@ public class SalesServiceImpl implements SalesService {
 
     private final SalesRepository repository;
     private final CashRegisterRepository registerRepository;
-    private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final SaleItemRepository saleItemRepository;
     private final MovementRepository movementRepository;
@@ -49,7 +41,14 @@ public class SalesServiceImpl implements SalesService {
 
     @Override
     public List<SalesResponseDTO> getSalesByStatus(SaleStatus status) {
-        List<Sales> sales = repository.findBySaleStatus(status);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Sales> sales;
+        if(currentUser.getRole() == Role.ADMIN){
+            sales = repository.findBySaleStatus(status);
+        }else{
+            sales = repository.findBySaleStatusAndBusinessId(status, currentUser.getBusiness().getId());
+        }
+
         return sales.stream()
                 .map(SalesResponseDTO::new)
                 .toList();
@@ -67,7 +66,8 @@ public class SalesServiceImpl implements SalesService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<Sales> salesList = repository.findByDateBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Sales> salesList = repository.findByDateBetweenAndBusinessId(start, end, currentUser.getBusiness().getId());
         return salesList.stream().map(SalesResponseDTO::new).toList();
     }
 
@@ -107,7 +107,6 @@ public class SalesServiceImpl implements SalesService {
             Integer quantity = item.quantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
             total = total.add(subtotal);
-
             SaleItem saleItem = new SaleItem(
                     quantity,
                     unitPrice,
@@ -122,7 +121,8 @@ public class SalesServiceImpl implements SalesService {
                      user,
                      product,
                      sale,
-                     null
+                     null,
+                    business
              );
             movementRepository.save(movement);
             product.decreaseStock(quantity);
@@ -140,7 +140,8 @@ public class SalesServiceImpl implements SalesService {
             saleSaved,
             null,
             register,
-            data.description()
+            data.description(),
+            business
         );
         cashMovementRepository.save(cashMovement);
         return new SalesResponseDTO(saleSaved);
@@ -169,6 +170,7 @@ public class SalesServiceImpl implements SalesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
         User user = authenticatedUserService.getCurrentUser();
+        Business business = businessContextService.getBusiness(data.businessId());
 
         sale.cancelSale(
                 user,
@@ -186,7 +188,8 @@ public class SalesServiceImpl implements SalesService {
                     user,
                     product,
                     sale,
-                    null
+                    null,
+                    business
             );
             movementRepository.save(movement);
             product.increaseStock(item.getQuantity());
@@ -201,7 +204,8 @@ public class SalesServiceImpl implements SalesService {
                 saleCancelled,
                 saleCancelled.getCancelled(),
                 register,
-                data.reason()
+                data.reason(),
+                business
         );
 
         cashMovementRepository.save(cashMovement);

@@ -3,21 +3,19 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.cash.CashMovementCreateRequestDTO;
 import com.poncheck.dto.request.cash.UpdateCashMovementRequestDTO;
 import com.poncheck.dto.response.cash.CashMovementResponseDTO;
-import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
 import com.poncheck.enums.CashRegisterStatus;
+import com.poncheck.enums.Role;
 import com.poncheck.enums.TypeCashMovement;
 import com.poncheck.exception.InvalidCashMovementException;
 import com.poncheck.exception.InvalidCashRegisterException;
 import com.poncheck.exception.InvalidDateRangeException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.*;
-import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.CashMovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,10 +30,17 @@ public class CashMovementServiceImpl implements CashMovementService {
     private final CashRegisterRepository registerRepository;
     private final CancelledSaleRepository cancelledSaleRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     @Override
     public List<CashMovementResponseDTO> getMovementsByType(TypeCashMovement type){
-        List<CashMovement> movementList = repository.findCashMovementByTypeCashMovement(type);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findCashMovementByTypeCashMovement(type);
+        }else{
+            movementList = repository.findCashMovementByTypeCashMovementAndBusiness_id(type, currentUser.getBusiness().getId());
+        }
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
@@ -43,7 +48,13 @@ public class CashMovementServiceImpl implements CashMovementService {
     public List<CashMovementResponseDTO> getMovementsBySale(Long id){
         saleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", id));
-        List<CashMovement> movementList = repository.findCashMovementBySale_id(id);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findCashMovementBySaleId(id);
+        }else {
+            movementList = repository.findCashMovementBySaleIdAndBusiness_id(id, currentUser.getBusiness().getId());
+        }
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
@@ -59,7 +70,14 @@ public class CashMovementServiceImpl implements CashMovementService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<CashMovement> movementList = repository.findByMovementAtBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findByMovementAtBetween(start, end);
+        }else{
+            movementList = repository.findByMovementAtBetweenAndBusiness_id(start, end, currentUser.getBusiness().getId());
+        }
+
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
@@ -68,7 +86,8 @@ public class CashMovementServiceImpl implements CashMovementService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<CashMovement> movementList = repository.findBySale_dateBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList = repository.findBySale_dateBetweenAndBusiness_id(start, end, currentUser.getBusiness().getId());
 
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
@@ -76,7 +95,14 @@ public class CashMovementServiceImpl implements CashMovementService {
     public List<CashMovementResponseDTO> getCashMovementsByUser(Long id){
         userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
-        List<CashMovement> movementList = repository.findByUser_id(id);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findByUser_id(id);
+        }else{
+            movementList = repository.findByUser_idAndBusiness_id(id, currentUser.getBusiness().getId());
+        }
+
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
@@ -84,6 +110,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     @Override
     public CashMovementResponseDTO createMovement(CashMovementCreateRequestDTO data) {
         User user = authenticatedUserService.getCurrentUser();
+        Business business = businessContextService.getBusiness(data.businessId());
         CashRegister cashRegister = registerRepository.findById(data.cashRegisterId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cash Register Not Found", "cash_register", data.cashRegisterId()));
 
@@ -119,7 +146,8 @@ public class CashMovementServiceImpl implements CashMovementService {
                 sale,
                 cancelledSale,
                 cashRegister,
-                data.description()
+                data.description(),
+                business
         );
 
         registerRepository.save(cashRegister);

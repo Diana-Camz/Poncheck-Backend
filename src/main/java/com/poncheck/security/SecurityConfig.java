@@ -41,16 +41,16 @@ public class SecurityConfig {
                  .csrf(AbstractHttpConfigurer::disable)
                  .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                  .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").hasAnyRole("OWNER", "ADMIN")
+                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").hasAnyRole("OWNER", "ADMIN")
                          .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/{id}/active").hasAnyRole("OWNER", "ADMIN")
+                         .requestMatchers(HttpMethod.PATCH, "/api/v1/users/{id}/active").hasAnyRole("OWNER", "ADMIN")
                          .requestMatchers(HttpMethod.DELETE, "/api/v1/users/{id}").hasRole("ADMIN")
                          .requestMatchers(HttpMethod.DELETE, "/api/v1/products/{id}").hasRole("ADMIN")
                          .requestMatchers(HttpMethod.POST,"/api/v1/products/", "/api/v1/products/{id}/active").hasAnyRole("ADMIN", "OWNER")
                          .requestMatchers(HttpMethod.DELETE, "/api/v1/categories/{id}").hasRole("ADMIN")
                          .requestMatchers(HttpMethod.POST,"/api/v1/categories/", "/api/v1/categories/{id}/active").hasAnyRole("ADMIN", "OWNER")
-                        .anyRequest().authenticated()
-                )
+                         .anyRequest().authenticated()
+                 )
                  .authenticationProvider(authenticationProvider)
                  .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

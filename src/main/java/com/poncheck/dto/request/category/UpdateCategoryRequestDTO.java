@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 public record UpdateCategoryRequestDTO(
         @NotNull
         @NotBlank
-        String name
+        String name,
+        Long businessId
 ) {
 }

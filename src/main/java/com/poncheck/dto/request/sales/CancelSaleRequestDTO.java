@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 
 public record CancelSaleRequestDTO(
         Long userId,
-        String reason
+        String reason,
+        Long businessId
 
 ) {
 }

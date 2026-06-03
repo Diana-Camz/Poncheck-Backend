@@ -4,10 +4,8 @@ import com.poncheck.dto.request.inventory.CreateMovementRequestDTO;
 import com.poncheck.dto.request.inventory.UpdateMovementRequestDTO;
 import com.poncheck.dto.response.inventory.MovementItemResponseDTO;
 import com.poncheck.dto.response.inventory.MovementResponseDTO;
-import com.poncheck.entity.Movement;
-import com.poncheck.entity.Product;
-import com.poncheck.entity.Sales;
-import com.poncheck.entity.User;
+import com.poncheck.entity.*;
+import com.poncheck.enums.Role;
 import com.poncheck.enums.TypeInventoryMovement;
 import com.poncheck.exception.InvalidMovementException;
 import com.poncheck.exception.ResourceDisabledException;
@@ -15,13 +13,12 @@ import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.MovementRepository;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.SalesRepository;
-import com.poncheck.repository.UserRepository;
-import com.poncheck.service.AuthenticatedUserService;
 import com.poncheck.service.MovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,11 +29,20 @@ public class MovementServiceIml implements MovementService {
     private final ProductRepository productRepository;
     private final SalesRepository saleRepository;
     private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
 
     @Override
     public List<MovementItemResponseDTO> getMovementsByType(TypeInventoryMovement type){
-        List<Movement> typeList = repository.findMovementByTypeInventoryMovement(type);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Movement> typeList;
+        if (currentUser.getRole() == Role.ADMIN) {
+            typeList = repository.findMovementByTypeInventoryMovement(type);
+        }else{
+            Business business = currentUser.getBusiness();
+            typeList = repository.findMovementByTypeInventoryMovementAndBusinessId(type, business.getId());
+        }
+
         return typeList.stream().map(MovementItemResponseDTO::new).toList();
     }
 
@@ -67,6 +73,7 @@ public class MovementServiceIml implements MovementService {
     @Override
     public List<MovementItemResponseDTO> createMovement(CreateMovementRequestDTO data) {
         User user = authenticatedUserService.getCurrentUser();
+        Business business = businessContextService.getBusiness(data.businessId());
         Sales sale = null;
         if (data.saleId() != null) {
             sale = saleRepository.findById(data.saleId())
@@ -79,7 +86,7 @@ public class MovementServiceIml implements MovementService {
         }
 
         List<Movement> movements = data.products().stream().map((item) -> {
-            Product product = productRepository.findById(item.productId())
+            Product product = productRepository.findByIdAndBusiness_id(item.productId(), business.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product  Not Found", "product", item.productId()));
             if(!product.getActive()){
                 throw new ResourceDisabledException("Product is disabled", product.getId());
@@ -100,7 +107,8 @@ public class MovementServiceIml implements MovementService {
                     user,
                     product,
                     null,
-                    null
+                    null,
+                    business
             );
 
         }).toList();

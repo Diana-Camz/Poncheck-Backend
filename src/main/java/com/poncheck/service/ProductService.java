@@ -5,6 +5,7 @@ import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -14,6 +15,7 @@ public interface ProductService {
     List<ProductResponseDTO> getInactiveProducts();
     ProductResponseDTO createProduct(CreateProductRequestDTO productData);
     ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO productData);
+    List<ProductResponseDTO> updateProductPrice(BigDecimal price);
     ProductResponseDTO updateActive(Long id, UpdateActiveProductRequestDTO status);
     void deleteProduct(Long id);
 }

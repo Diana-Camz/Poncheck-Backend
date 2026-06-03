@@ -8,13 +8,12 @@ import com.poncheck.entity.Business;
 import com.poncheck.entity.CashRegister;
 import com.poncheck.entity.User;
 import com.poncheck.enums.CashRegisterStatus;
+import com.poncheck.enums.Role;
 import com.poncheck.exception.InvalidCashRegisterException;
 import com.poncheck.exception.InvalidDateRangeException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CashRegisterRepository;
 import com.poncheck.repository.UserRepository;
-import com.poncheck.service.AuthenticatedUserService;
-import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.CashRegisterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +32,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public CashRegisterResponseDTO openRegister(CashRegisterOpenRequestDTO data) {
-        if(repository.existsByStatus(CashRegisterStatus.OPEN)){
+        if(repository.existsByStatusAndBusinessId(CashRegisterStatus.OPEN, data.businessId())){
             throw new InvalidCashRegisterException("There is one Cash Register already open");
         }
         User user = userRepository.findById(data.userId())
@@ -70,8 +69,16 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public CashRegisterResponseDTO getCurrentRegister(){
-        CashRegister register = repository.findByStatus(CashRegisterStatus.OPEN)
-                .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
+        User currentUser = authenticatedUserService.getCurrentUser();
+        CashRegister register;
+        if(currentUser.getRole() == Role.ADMIN){
+            register = repository.findByStatus(CashRegisterStatus.OPEN)
+                    .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
+        }else{
+            register = repository.findByStatusAndBusinessId(CashRegisterStatus.OPEN, currentUser.getBusiness().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
+        }
+
 
         return new CashRegisterResponseDTO(register);
     }
@@ -89,7 +96,13 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<CashRegister> registerList = repository.findByOpenedAtBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashRegister> registerList;
+        if(currentUser.getRole() == Role.ADMIN){
+            registerList = repository.findByOpenedAtBetween(start, end);
+        }else{
+            registerList = repository.findByOpenedAtBetweenAndBusinessId(start, end, currentUser.getBusiness().getId());
+        }
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 
     }

@@ -14,7 +14,8 @@ public record CreateMovementRequestDTO(
         @NotNull
         List<MovementItemRequestDTO> products,
         Long saleId,
-        Long referenceMovement
+        Long referenceMovement,
+        Long businessId
 
 ) {
 }

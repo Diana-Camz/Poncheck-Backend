@@ -18,6 +18,7 @@ public record CashMovementCreateRequestDTO(
        Long cancelledSaleId,
        @NotNull
        Long cashRegisterId,
-       String description
+       String description,
+       Long businessId
 ) {
 }

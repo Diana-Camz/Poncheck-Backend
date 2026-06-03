@@ -8,16 +8,16 @@ import com.poncheck.entity.Business;
 import com.poncheck.entity.Category;
 import com.poncheck.entity.Product;
 import com.poncheck.entity.User;
+import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
 import com.poncheck.repository.CategoryRepository;
-import com.poncheck.service.AuthenticatedUserService;
-import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -26,6 +26,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
     private final BusinessContextService businessContextService;
+    private final AuthenticatedUserService authenticatedUserService;
 
     //Retrieves a product by its ID
     @Override
@@ -47,7 +48,13 @@ public class ProductServiceImpl implements ProductService {
     //Retrieves a list of all active products
     @Override
     public List<ProductResponseDTO> getActiveProducts(){
-        List<Product> products = repository.findByActiveTrue();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Product> products;
+        if(currentUser.getRole() == Role.ADMIN){
+            products = repository.findByActiveTrue();
+        }else{
+            products = repository.findByActiveTrueAndBusinessId(currentUser.getBusiness().getId());
+        }
         return products.stream()
                 .map(ProductResponseDTO::new)
                 .toList();
@@ -55,7 +62,13 @@ public class ProductServiceImpl implements ProductService {
     //Retrieves a list of all inactive products
     @Override
     public List<ProductResponseDTO> getInactiveProducts(){
-        List<Product> products = repository.findByActiveFalse();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Product> products;
+        if(currentUser.getRole() == Role.ADMIN){
+            products = repository.findByActiveFalse();
+        }else{
+            products = repository.findByActiveFalseAndBusinessId(currentUser.getBusiness().getId());
+        }
         return products.stream()
                 .map(ProductResponseDTO::new)
                 .toList();
@@ -101,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO data) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
-        if(repository.existsByCode(data.code())){
+        if(repository.existsByCodeAndBusinessId(data.code(), product.getBusiness().getId())){
                 throw new DuplicateFieldException("A product with this code already exists");
         }
         Category category = null;
@@ -121,6 +134,11 @@ public class ProductServiceImpl implements ProductService {
                 category);
         Product updatedProduct = repository.save(product);
         return new ProductResponseDTO(updatedProduct);
+    }
+
+    @Override
+    public List<ProductResponseDTO> updateProductPrice(BigDecimal price) {
+        return List.of();
     }
 
     //Updates the product active status (logical deletion)

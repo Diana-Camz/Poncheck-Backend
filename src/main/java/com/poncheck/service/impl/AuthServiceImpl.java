@@ -9,15 +9,11 @@ import com.poncheck.entity.User;
 import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.InvalidUserBusinessException;
-import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.BusinessRepository;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.AuthService;
-import com.poncheck.service.AuthenticatedUserService;
-import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -58,12 +54,13 @@ public class AuthServiceImpl implements AuthService {
     //Creates new User
     @Override
     public AuthResponseDTO register(AuthRegisterRequestDTO userData) {
-        if(userRepository.existsUserByUsername(userData.username())){
+        String hashedPassword = passwordEncoder.encode(userData.password());
+        Business business = null;
+
+        if(userRepository.existsByUsername(userData.username())){
             throw new DuplicateFieldException("A user with this username already exists");
         }
 
-        String hashedPassword = passwordEncoder.encode(userData.password());
-        Business business = null;
         User currentUser = authenticatedUserService.getCurrentUser();
         if(currentUser.getRole() == Role.OWNER && userData.role() == Role.ADMIN){
             throw new InvalidUserBusinessException("Owners cannot create users with role Admin");
@@ -71,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
 
         if(currentUser.getRole() == Role.OWNER){
             business = businessContextService.getBusiness(currentUser.getBusiness().getId());
+
         }
 
         boolean rolToRegister = userData.role() == Role.OWNER || userData.role() == Role.SELLER;
@@ -112,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid Refresh Token");
         }
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username )
                 .orElseThrow(() -> new UsernameNotFoundException("User " + username + " Not Found"));
 
         if(!jwtService.isTokenValid(refreshToken, user)){

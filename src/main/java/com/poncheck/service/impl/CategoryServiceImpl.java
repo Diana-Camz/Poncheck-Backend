@@ -10,8 +10,6 @@ import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CategoryRepository;
-import com.poncheck.service.AuthenticatedUserService;
-import com.poncheck.service.BusinessContextService;
 import com.poncheck.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
+    private final AuthenticatedUserService authenticatedUserService;
     private final BusinessContextService businessContextService;
+
 
     //Retrieves all categories
     @Override
@@ -36,7 +36,9 @@ public class CategoryServiceImpl implements CategoryService {
     // Retrieves all active categories
     @Override
     public List<CategoryResponseDTO> getActiveCategories() {
-        List <Category> categories = repository.findByActiveTrue();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List <Category> categories = repository.findByActiveTrueAndBusinessId(business.getId());
         return categories.stream()
                 .map(CategoryResponseDTO::new)
                 .toList();
@@ -45,7 +47,9 @@ public class CategoryServiceImpl implements CategoryService {
     // Retrieves all Inactive Categories
     @Override
     public List<CategoryResponseDTO> getInactiveCategories() {
-        List <Category> categories = repository.findByActiveFalse();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List <Category> categories = repository.findByActiveFalseAndBusinessId(business.getId());
         return categories.stream()
                 .map(CategoryResponseDTO::new)
                 .toList();
@@ -63,11 +67,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO createCategory(CreateCategoryRequestDTO data) {
         String normalizedName = data.name().trim().toLowerCase();
-        if(repository.existsByNameIgnoreCase(normalizedName)){
+
+        Business business = businessContextService.getBusiness(data.businessId());
+        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, business.getId())){
             throw new DuplicateFieldException("A category with this name already exists");
         }
 
-        Business business = businessContextService.getBusiness(data.businessId());
         Category category = new Category(data.name().trim(), business);
         Category categorySaved = repository.save(category);
         return new CategoryResponseDTO(categorySaved);
@@ -79,7 +84,8 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
         String normalizedName = data.name().trim().toLowerCase();
-        if(repository.existsByNameIgnoreCase(normalizedName)){
+        Business business = businessContextService.getBusiness(data.businessId());
+        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, business.getId())){
             throw new DuplicateFieldException("A category with this name already exists");
         }
         category.updateCategory(data.name());

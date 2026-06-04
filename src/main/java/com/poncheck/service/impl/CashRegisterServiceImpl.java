@@ -35,14 +35,12 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         if(repository.existsByStatusAndBusinessId(CashRegisterStatus.OPEN, data.businessId())){
             throw new InvalidCashRegisterException("There is one Cash Register already open");
         }
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
-
         Business business = businessContextService.getBusiness(data.businessId());
+        User currentUser = authenticatedUserService.getCurrentUser();
 
         CashRegister cashRegister = new CashRegister(
                 data.openingAmount(),
-                user,
+                currentUser,
                 data.description(),
                 business
         );
@@ -75,7 +73,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
             register = repository.findByStatus(CashRegisterStatus.OPEN)
                     .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
         }else{
-            register = repository.findByStatusAndBusinessId(CashRegisterStatus.OPEN, currentUser.getBusiness().getId())
+            register = repository.findByStatusAndBusiness_id(CashRegisterStatus.OPEN, currentUser.getBusiness().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
         }
 
@@ -84,9 +82,10 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     }
 
     @Override
-    public CashRegisterResponseDTO getRegisterById(Long id){
-        CashRegister register = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", id));
+    public CashRegisterResponseDTO getRegisterById(Long registerId){
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        CashRegister register = repository.findByIdAndBusiness_id(registerId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", registerId));
 
         return new CashRegisterResponseDTO(register);
     }
@@ -126,9 +125,10 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     }
 
     @Override
-    public CashRegisterResponseDTO updateRegister(Long id, UpdateRegisterRequestDTO data){
-        CashRegister register = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", id));
+    public CashRegisterResponseDTO updateRegister(Long registerId, UpdateRegisterRequestDTO data){
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        CashRegister register = repository.findByIdAndBusiness_id(registerId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", registerId));
 
         register.updateRegister(
                 data.description(),

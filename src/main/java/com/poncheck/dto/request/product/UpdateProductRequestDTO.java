@@ -18,6 +18,7 @@ public record UpdateProductRequestDTO (
         String description,
         PoncheBase poncheBase,
         ProductSize productSize,
-        Long categoryId
+        Long categoryId,
+        Long businessId
 ){
 }

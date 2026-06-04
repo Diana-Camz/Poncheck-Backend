@@ -8,6 +8,7 @@ public record UpdateBusinessRequestDTO(
         String email,
         String address,
         String description,
-        String logoUrl
+        String logoUrl,
+        Long ownerId
 ) {
 }

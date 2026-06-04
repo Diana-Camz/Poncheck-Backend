@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 public record UpdateRegisterRequestDTO(
         String description,
         @Positive
-        BigDecimal realAmount
+        BigDecimal realAmount,
+        Long businessId
 ) {
 }

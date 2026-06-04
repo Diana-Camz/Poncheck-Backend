@@ -4,6 +4,7 @@ import com.poncheck.enums.PaymentMethod;
 
 public record UpdateSaleRequestDTO(
         PaymentMethod paymentMethod,
-        String description
+        String description,
+        Long businessId
 ) {
 }

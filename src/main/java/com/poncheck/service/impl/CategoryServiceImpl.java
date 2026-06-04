@@ -57,9 +57,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     //Retrieves a category by its ID
     @Override
-    public CategoryResponseDTO getCategoryById(Long id) {
-        Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
+    public CategoryResponseDTO getCategoryById(Long categoryId) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
         return new CategoryResponseDTO(category);
     }
 
@@ -80,12 +81,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     //Updates name field by its ID
     @Override
-    public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO data) {
-        Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
+    public CategoryResponseDTO updateCategory(Long categoryId, UpdateCategoryRequestDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
         String normalizedName = data.name().trim().toLowerCase();
-        Business business = businessContextService.getBusiness(data.businessId());
-        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, business.getId())){
+
+        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, businessId)){
             throw new DuplicateFieldException("A category with this name already exists");
         }
         category.updateCategory(data.name());
@@ -95,10 +97,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     //Updates the category active status (logical deletion)
     @Override
-    public CategoryResponseDTO updateActive(Long id, UpdateActiveCategoryDTO status) {
-        Category category = repository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", id));
-        category.updateActive(status.active());
+    public CategoryResponseDTO updateActive(Long categoryId, UpdateActiveCategoryDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", categoryId));
+        category.updateActive(data.active());
         Category updatedStatus = repository.save(category);
         return new CategoryResponseDTO(updatedStatus);
     }

@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface CashMovementRepository extends JpaRepository<CashMovement, Long> {
+    Optional<CashMovement> findByIdAndBusiness_id(Long saleId, Long businessId);
     List<CashMovement> findCashMovementByTypeCashMovement(TypeCashMovement type);
     List<CashMovement> findCashMovementByTypeCashMovementAndBusiness_id(TypeCashMovement type, Long id);
     List<CashMovement> findCashMovementBySaleId(Long id);

@@ -55,9 +55,10 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    public SalesResponseDTO getSaleById(Long id) {
-        Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
+    public SalesResponseDTO getSaleById(Long saleId) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Sales sale = repository.findByIdAndBusiness_id(saleId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", saleId));
         return new SalesResponseDTO(sale);
     }
 
@@ -66,19 +67,20 @@ public class SalesServiceImpl implements SalesService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        User currentUser = authenticatedUserService.getCurrentUser();
-        List<Sales> salesList = repository.findByDateBetweenAndBusinessId(start, end, currentUser.getBusiness().getId());
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        List<Sales> salesList = repository.findByDateBetweenAndBusinessId(start, end, businessId);
         return salesList.stream().map(SalesResponseDTO::new).toList();
     }
 
     @Transactional
     @Override
     public SalesResponseDTO createSale(CreateSaleRequestDTO data){
+
+        Business business = businessContextService.getBusiness(data.businessId());
         CashRegister register = registerRepository
-                .findByStatus(CashRegisterStatus.OPEN)
+                .findByStatusAndBusiness_id(CashRegisterStatus.OPEN, business.getId())
                 .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
         User user = authenticatedUserService.getCurrentUser();
-        Business business = businessContextService.getBusiness(data.businessId());
         BigDecimal total = BigDecimal.ZERO;
 
         Sales sale = new Sales(
@@ -95,7 +97,7 @@ public class SalesServiceImpl implements SalesService {
         }
         List<SaleItemRequestDTO> items = data.items();
          for(SaleItemRequestDTO item : items) {
-            Product product = productRepository.findById(item.productId())
+            Product product = productRepository.findByIdAndBusiness_id(item.productId(), business.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
             if(!product.getActive()){
                 throw new ResourceDisabledException("Product is disabled", product.getId());
@@ -148,9 +150,10 @@ public class SalesServiceImpl implements SalesService {
     }
 
     @Override
-    public SalesResponseDTO updateSale(Long id, UpdateSaleRequestDTO data){
-        Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
+    public SalesResponseDTO updateSale(Long saleId, UpdateSaleRequestDTO data){
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Sales sale = repository.findByIdAndBusiness_id(saleId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", saleId));
 
         sale.updateSale(
                 data.paymentMethod(),
@@ -163,17 +166,19 @@ public class SalesServiceImpl implements SalesService {
     @Transactional
     @Override
     public void cancelSale(Long id, CancelSaleRequestDTO data) {
+        Business business = businessContextService.getBusiness(data.businessId());
         CashRegister register = registerRepository
-                .findByStatus(CashRegisterStatus.OPEN)
+                .findByStatusAndBusiness_id(CashRegisterStatus.OPEN, business.getId())
                 .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
         Sales sale = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
 
         User user = authenticatedUserService.getCurrentUser();
-        Business business = businessContextService.getBusiness(data.businessId());
+
 
         sale.cancelSale(
                 user,
+                business,
                 data.reason()
         );
         Sales saleCancelled = repository.save(sale);

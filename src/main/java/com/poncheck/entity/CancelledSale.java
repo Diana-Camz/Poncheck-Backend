@@ -21,11 +21,13 @@ public class CancelledSale {
     public CancelledSale(
             Sales sale,
             User user,
+            Business business,
             String reason
     ){
         this.sale = sale;
         this.user = user;
         this.reason = reason;
+        this.business = business;
     }
 
     @Id
@@ -42,4 +44,7 @@ public class CancelledSale {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id", nullable = false)
     private Sales sale;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 }

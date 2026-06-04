@@ -63,33 +63,17 @@ public class User implements UserDetails {
     @JoinColumn(name = "business_id")
     Business business;
 
-    public void validateBusiness(Role role, Business business) {
-        if ((role == Role.SELLER || role == Role.OWNER) && business == null) {
-            throw new InvalidUserBusinessException(
-                    "Sellers and Owners must belong to a business"
-            );
-        }
-    }
 
     public void updateUser(
             String name,
-            String username,
-            Role role,
-            Business business
+            String username
     ){
-        //Role finalRole = role != null ? role : this.role;
-        Business finalBusiness = business != null ? business : this.business;
-
-        validateBusiness(role, finalBusiness);
-
       if(name != null){
           this.name = name;
       }
       if(username != null){
           this.username = username;
       }
-        //this.role = finalRole;
-        this.business = finalBusiness;
     }
 
     public void inactiveUser(Boolean active){

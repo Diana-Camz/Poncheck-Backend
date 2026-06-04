@@ -28,6 +28,8 @@ public class BusinessServiceImpl implements BusinessService {
 
     private final BusinessRepository repository;
     private final UserRepository userRepository;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
 
     @Override
@@ -86,10 +88,12 @@ public class BusinessServiceImpl implements BusinessService {
         return new BusinessResponseDTO(businessSaved);
     }
 
+    // only this method can be edited by owners
     @Override
-    public BusinessResponseDTO updateBusiness(Long id, UpdateBusinessRequestDTO data){
-        Business business = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
+    public BusinessResponseDTO updateBusiness(Long businessId, UpdateBusinessRequestDTO data){
+        Long ownerId = authenticatedUserService.getCurrentUser().getId();
+        Business business = repository.findByIdAndOwner_id(businessId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
 
         business.updateBusiness(
                 data.name(),
@@ -105,24 +109,23 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
-    public BusinessResponseDTO updateActive(Long id, UpdateActiveBusinessRequestDTO data){
-        Business business = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
+    public BusinessResponseDTO updateActive(Long businessId, UpdateActiveBusinessRequestDTO data){
+        Business business = repository.findById(businessId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
 
         business.updateActive(
                 data.active()
         );
-
         Business businessSaved = repository.save(business);
         return new BusinessResponseDTO(businessSaved);
     }
 
     @Override
-    public BusinessResponseDTO updateOwner(Long id, UpdateOwnerBusinessRequestDTO data){
-        Business business = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
+    public BusinessResponseDTO updateOwner(Long businessId, UpdateOwnerBusinessRequestDTO data){
+        Business business = repository.findById(businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
 
-        User owner = userRepository.findById(data.ownerId())
+        User owner = userRepository.findByIdAndBusiness_id(data.ownerId(), businessId)
                         .orElseThrow(() -> new ResourceNotFoundException("Owner Not Found", "user", data.ownerId()));
 
         if(!business.getActive()){

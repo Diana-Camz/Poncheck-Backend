@@ -4,6 +4,7 @@ import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
 import com.poncheck.enums.Role;
 import com.poncheck.exception.ResourceNotFoundException;
+import com.poncheck.exception.UnauthorizedActionException;
 import com.poncheck.repository.BusinessRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,17 +15,23 @@ public class BusinessContextService {
     private final BusinessRepository businessRepository;
     private final AuthenticatedUserService authenticatedUserService;
 
-    public Business getBusiness(Long id){
+    public Business getBusiness(Long businessId){
         User currentUser = authenticatedUserService.getCurrentUser();
-        Business business;
 
         if(currentUser.getRole() == Role.ADMIN){
-            business = businessRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
-        }else{
-            business = currentUser.getBusiness();
+            return businessRepository.findById(businessId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
         }
 
-        return business;
+        Business userBusiness = currentUser.getBusiness();
+        if(businessId != null && !businessId.equals(userBusiness.getId())){
+            throw new UnauthorizedActionException("You cannot access another business");
+        }
+
+        return userBusiness;
+    }
+
+    public Business getCurrentBusiness() {
+        return authenticatedUserService.getCurrentUser().getBusiness();
     }
 }

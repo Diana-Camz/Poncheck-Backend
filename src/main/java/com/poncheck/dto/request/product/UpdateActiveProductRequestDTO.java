@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateActiveProductRequestDTO(
         @NotNull
-        Boolean active
+        Boolean active,
+        Long businessId
 ) {
 }

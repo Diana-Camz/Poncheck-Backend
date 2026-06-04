@@ -8,6 +8,6 @@ public record UpdateUserRequestDTO(
         @Size(max = 100)
         String name,
         String username,
-        Role role
+        Long businessId
 ) {
 }

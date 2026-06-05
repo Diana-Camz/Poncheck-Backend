@@ -2,6 +2,7 @@ package com.poncheck.service;
 
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
+import com.poncheck.dto.request.product.UpdateProductPriceRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
 
@@ -15,7 +16,7 @@ public interface ProductService {
     List<ProductResponseDTO> getInactiveProducts();
     ProductResponseDTO createProduct(CreateProductRequestDTO productData);
     ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO productData);
-    List<ProductResponseDTO> updateProductPrice(BigDecimal price);
+    List<ProductResponseDTO> updateProductPrice(UpdateProductPriceRequestDTO data);
     ProductResponseDTO updateActive(Long id, UpdateActiveProductRequestDTO status);
     void deleteProduct(Long id);
 }

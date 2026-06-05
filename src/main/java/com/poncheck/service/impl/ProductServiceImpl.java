@@ -2,6 +2,7 @@ package com.poncheck.service.impl;
 
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
+import com.poncheck.dto.request.product.UpdateProductPriceRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
 import com.poncheck.entity.Business;
@@ -140,8 +141,22 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponseDTO> updateProductPrice(BigDecimal price) {
-        return List.of();
+    public List<ProductResponseDTO> updateProductPrice(UpdateProductPriceRequestDTO data) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Category category = categoryRepository.findByIdAndBusiness_id(data.categoryId(), businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not found", "category", data.categoryId()));
+        List<Product> products = repository.findAll(
+                ProductSpecification.withFilters(
+                        businessId,
+                        category.getId(),
+                        data.poncheBase(),
+                        data.productSize()
+                )
+        );
+        products.forEach(product -> product.updatePrice(data.price()));
+
+        repository.saveAll(products);
+        return products.stream().map(ProductResponseDTO::new).toList();
     }
 
     //Updates the product active status (logical deletion)

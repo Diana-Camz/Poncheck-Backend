@@ -122,6 +122,15 @@ public class Product {
         }
     }
 
+    public void updatePrice(BigDecimal price){
+        if(price != null){
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Price must be greater than zero");
+            }
+            this.price = price;
+        }
+    }
+
     public void increaseStock(int quantity){
         this.stock += quantity;
     }

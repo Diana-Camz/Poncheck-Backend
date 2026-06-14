@@ -91,6 +91,7 @@ public class SalesServiceImpl implements SalesService {
                 register,
                 business
         );
+        repository.save(sale);
 
         if (data.items() == null || data.items().isEmpty()) {
             throw new InvalidSaleException("Sale must have at least one item");
@@ -142,7 +143,7 @@ public class SalesServiceImpl implements SalesService {
             saleSaved,
             null,
             register,
-            data.description(),
+            "sale",
             business
         );
         cashMovementRepository.save(cashMovement);

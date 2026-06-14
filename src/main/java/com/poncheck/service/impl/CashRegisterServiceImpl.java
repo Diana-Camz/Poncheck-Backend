@@ -32,10 +32,11 @@ public class CashRegisterServiceImpl implements CashRegisterService {
 
     @Override
     public CashRegisterResponseDTO openRegister(CashRegisterOpenRequestDTO data) {
-        if(repository.existsByStatusAndBusinessId(CashRegisterStatus.OPEN, data.businessId())){
+        Business business = businessContextService.getBusiness(data.businessId());
+        Long businessId = business.getId();
+        if(repository.existsByStatusAndBusinessId(CashRegisterStatus.OPEN, businessId)){
             throw new InvalidCashRegisterException("There is one Cash Register already open");
         }
-        Business business = businessContextService.getBusiness(data.businessId());
         User currentUser = authenticatedUserService.getCurrentUser();
 
         CashRegister cashRegister = new CashRegister(

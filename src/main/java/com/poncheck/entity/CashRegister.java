@@ -40,7 +40,7 @@ public class CashRegister {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cr")
+    @Column(name = "id_cash_register")
     private Long id;
 
     @Column(name = "opening_amount", nullable = false, precision = 10, scale = 2)
@@ -91,7 +91,7 @@ public class CashRegister {
     }
 
     public void calculateDifference(){
-        this.difference = (this.expectedAmount).subtract(this.realAmount);
+        this.difference = (this.realAmount).subtract(this.expectedAmount);
     }
 
     public void increaseExpectedAmount(BigDecimal amount){

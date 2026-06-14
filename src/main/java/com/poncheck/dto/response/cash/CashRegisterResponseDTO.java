@@ -15,6 +15,7 @@ public record CashRegisterResponseDTO(
         UserCashResponseDTO closedBy,
         BigDecimal openingAmount,
         BigDecimal expectedAmount,
+        BigDecimal realAmount,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         BigDecimal difference,
         LocalDateTime openedAt,
@@ -32,6 +33,7 @@ public record CashRegisterResponseDTO(
                 : null,
                 register.getOpeningAmount(),
                 register.getExpectedAmount(),
+                register.getRealAmount(),
                 register.getDifference(),
                 register.getOpenedAt(),
                 register.getClosedAt(),

@@ -62,8 +62,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User currentUser = authenticatedUserService.getCurrentUser();
-        if(currentUser.getRole() == Role.OWNER && userData.role() == Role.ADMIN){
-            throw new InvalidUserBusinessException("Owners cannot create users with role Admin");
+        if(currentUser.getRole() != Role.ADMIN && userData.role() == Role.ADMIN){
+            throw new InvalidUserBusinessException("Only admins can create admin users");
         }
 
         if(currentUser.getRole() == Role.OWNER){

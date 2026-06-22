@@ -22,6 +22,7 @@ public record CreateProductRequestDTO(
         PoncheBase poncheBase,
         ProductSize productSize,
         @NotNull
-        Long categoryId
+        Long categoryId,
+        Long businessId
 ) {
 }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CashMovementResponseDTO(
+        Long id,
         TypeCashMovement typeCashMovement,
         BigDecimal amount,
         LocalDateTime movementAt,
@@ -21,6 +22,7 @@ public record CashMovementResponseDTO(
 ) {
     public CashMovementResponseDTO(CashMovement movement){
         this(
+                movement.getId(),
                 movement.getTypeCashMovement(),
                 movement.getAmount(),
                 movement.getMovementAt(),

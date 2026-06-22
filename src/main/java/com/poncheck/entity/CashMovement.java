@@ -29,7 +29,8 @@ public class CashMovement {
         Sales sale,
         CancelledSale cancelledSale,
         CashRegister cashRegister,
-        String description
+        String description,
+        Business business
     ){
         this.typeCashMovement = typeCashMovement;
         this.amount = amount;
@@ -38,6 +39,7 @@ public class CashMovement {
         this.cancelledSale = cancelledSale;
         this.cashRegister = cashRegister;
         this.description = description;
+        this.business = business;
     }
 
     @Id
@@ -74,6 +76,10 @@ public class CashMovement {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "cr_id", nullable = false)
     private CashRegister cashRegister;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
     public void updateMovement(String description, BigDecimal amount){
         if(description != null){

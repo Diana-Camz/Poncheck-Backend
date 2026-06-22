@@ -28,7 +28,9 @@ public class Product {
             ProductSize productSize,
             PoncheBase poncheBase,
             Category category,
-            String code) {
+            String code,
+            Business business
+            ) {
         this.name = name;
         this.code = code;
         this.stock = 0;
@@ -38,6 +40,7 @@ public class Product {
         this.productSize = productSize;
         this.poncheBase = poncheBase;
         this.category = category;
+        this.business = business;
         this.active = true;
     }
 
@@ -78,6 +81,10 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
+
 
     public void updateData(
             String name,
@@ -112,6 +119,15 @@ public class Product {
         }
         if(category != null){
             this.category = category;
+        }
+    }
+
+    public void updatePrice(BigDecimal price){
+        if(price != null){
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Price must be greater than zero");
+            }
+            this.price = price;
         }
     }
 

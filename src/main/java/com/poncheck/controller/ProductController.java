@@ -2,6 +2,7 @@ package com.poncheck.controller;
 
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
+import com.poncheck.dto.request.product.UpdateProductPriceRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
 import com.poncheck.service.ProductService;
@@ -62,6 +63,14 @@ public class ProductController {
         ProductResponseDTO product = service.updateProduct(id, productData);
         return ResponseEntity.ok(product);
     }
+
+    //Updates prices of selected products by filters
+    @PatchMapping("/prices")
+    public ResponseEntity<List<ProductResponseDTO>> updateProductPrice(@RequestBody @Valid UpdateProductPriceRequestDTO productData){
+        List<ProductResponseDTO> products = service.updateProductPrice(productData);
+        return ResponseEntity.ok(products);
+    }
+
 
     //Updates the product active status (logical deletion)
     @PatchMapping("/{id}/active")

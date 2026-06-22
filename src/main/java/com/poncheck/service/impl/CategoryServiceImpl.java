@@ -4,7 +4,9 @@ import com.poncheck.dto.request.category.CreateCategoryRequestDTO;
 import com.poncheck.dto.request.category.UpdateActiveCategoryDTO;
 import com.poncheck.dto.request.category.UpdateCategoryRequestDTO;
 import com.poncheck.dto.response.category.CategoryResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.Category;
+import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.CategoryRepository;
@@ -18,6 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
 
     //Retrieves all categories
@@ -32,7 +36,9 @@ public class CategoryServiceImpl implements CategoryService {
     // Retrieves all active categories
     @Override
     public List<CategoryResponseDTO> getActiveCategories() {
-        List <Category> categories = repository.findByActiveTrue();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List <Category> categories = repository.findByActiveTrueAndBusinessId(business.getId());
         return categories.stream()
                 .map(CategoryResponseDTO::new)
                 .toList();
@@ -41,7 +47,9 @@ public class CategoryServiceImpl implements CategoryService {
     // Retrieves all Inactive Categories
     @Override
     public List<CategoryResponseDTO> getInactiveCategories() {
-        List <Category> categories = repository.findByActiveFalse();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        Business business = currentUser.getBusiness();
+        List <Category> categories = repository.findByActiveFalseAndBusinessId(business.getId());
         return categories.stream()
                 .map(CategoryResponseDTO::new)
                 .toList();
@@ -49,9 +57,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     //Retrieves a category by its ID
     @Override
-    public CategoryResponseDTO getCategoryById(Long id) {
-        Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
+    public CategoryResponseDTO getCategoryById(Long categoryId) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
         return new CategoryResponseDTO(category);
     }
 
@@ -59,21 +68,26 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponseDTO createCategory(CreateCategoryRequestDTO data) {
         String normalizedName = data.name().trim().toLowerCase();
-        if(repository.existsByNameIgnoreCase(normalizedName)){
+
+        Business business = businessContextService.getBusiness(data.businessId());
+        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, business.getId())){
             throw new DuplicateFieldException("A category with this name already exists");
         }
-        Category category = new Category(data.name().trim());
+
+        Category category = new Category(data.name().trim(), business);
         Category categorySaved = repository.save(category);
         return new CategoryResponseDTO(categorySaved);
     }
 
     //Updates name field by its ID
     @Override
-    public CategoryResponseDTO updateCategory(Long id, UpdateCategoryRequestDTO data) {
-        Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
+    public CategoryResponseDTO updateCategory(Long categoryId, UpdateCategoryRequestDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
         String normalizedName = data.name().trim().toLowerCase();
-        if(repository.existsByNameIgnoreCase(normalizedName)){
+
+        if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, businessId)){
             throw new DuplicateFieldException("A category with this name already exists");
         }
         category.updateCategory(data.name());
@@ -83,10 +97,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     //Updates the category active status (logical deletion)
     @Override
-    public CategoryResponseDTO updateActive(Long id, UpdateActiveCategoryDTO status) {
-        Category category = repository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", id));
-        category.updateActive(status.active());
+    public CategoryResponseDTO updateActive(Long categoryId, UpdateActiveCategoryDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
+                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", categoryId));
+        category.updateActive(data.active());
         Category updatedStatus = repository.save(category);
         return new CategoryResponseDTO(updatedStatus);
     }

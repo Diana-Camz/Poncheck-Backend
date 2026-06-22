@@ -3,9 +3,9 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.cash.CashMovementCreateRequestDTO;
 import com.poncheck.dto.request.cash.UpdateCashMovementRequestDTO;
 import com.poncheck.dto.response.cash.CashMovementResponseDTO;
-import com.poncheck.dto.response.sales.SalesResponseDTO;
 import com.poncheck.entity.*;
 import com.poncheck.enums.CashRegisterStatus;
+import com.poncheck.enums.Role;
 import com.poncheck.enums.TypeCashMovement;
 import com.poncheck.exception.InvalidCashMovementException;
 import com.poncheck.exception.InvalidCashRegisterException;
@@ -16,7 +16,6 @@ import com.poncheck.service.CashMovementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,25 +29,40 @@ public class CashMovementServiceImpl implements CashMovementService {
     private final UserRepository userRepository;
     private final CashRegisterRepository registerRepository;
     private final CancelledSaleRepository cancelledSaleRepository;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     @Override
     public List<CashMovementResponseDTO> getMovementsByType(TypeCashMovement type){
-        List<CashMovement> movementList = repository.findCashMovementByTypeCashMovement(type);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findCashMovementByTypeCashMovement(type);
+        }else{
+            movementList = repository.findCashMovementByTypeCashMovementAndBusiness_id(type, currentUser.getBusiness().getId());
+        }
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
     @Override
-    public List<CashMovementResponseDTO> getMovementsBySale(Long id){
-        saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", id));
-        List<CashMovement> movementList = repository.findCashMovementBySale_id(id);
+    public List<CashMovementResponseDTO> getMovementsBySale(Long saleId){
+        User currentUser = authenticatedUserService.getCurrentUser();
+        saleRepository.findByIdAndBusiness_id(saleId, currentUser.getBusiness().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", saleId));
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findCashMovementBySaleId(saleId);
+        }else {
+            movementList = repository.findCashMovementBySaleIdAndBusiness_id(saleId, currentUser.getBusiness().getId());
+        }
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
     @Override
-    public CashMovementResponseDTO getMovementById(Long id){
-        CashMovement movement = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", id));
+    public CashMovementResponseDTO getMovementById(Long saleId){
+        Long businessId = authenticatedUserService.getCurrentUser().getBusiness().getId();
+        CashMovement movement = repository.findByIdAndBusiness_id(saleId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", saleId));
         return new CashMovementResponseDTO(movement);
     }
 
@@ -57,7 +71,14 @@ public class CashMovementServiceImpl implements CashMovementService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<CashMovement> movementList = repository.findByMovementAtBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findByMovementAtBetween(start, end);
+        }else{
+            movementList = repository.findByMovementAtBetweenAndBusiness_id(start, end, currentUser.getBusiness().getId());
+        }
+
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
@@ -66,7 +87,8 @@ public class CashMovementServiceImpl implements CashMovementService {
         if (start.isAfter(end)) {
             throw new InvalidDateRangeException("Start date cannot be after end date");
         }
-        List<CashMovement> movementList = repository.findBySale_dateBetween(start, end);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList = repository.findBySale_dateBetweenAndBusiness_id(start, end, currentUser.getBusiness().getId());
 
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
@@ -74,16 +96,23 @@ public class CashMovementServiceImpl implements CashMovementService {
     public List<CashMovementResponseDTO> getCashMovementsByUser(Long id){
         userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
-        List<CashMovement> movementList = repository.findByUser_id(id);
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<CashMovement> movementList;
+        if(currentUser.getRole() == Role.ADMIN){
+            movementList = repository.findByUser_id(id);
+        }else{
+            movementList = repository.findByUser_idAndBusiness_id(id, currentUser.getBusiness().getId());
+        }
+
         return movementList.stream().map(CashMovementResponseDTO::new).toList();
     }
 
     @Transactional
     @Override
     public CashMovementResponseDTO createMovement(CashMovementCreateRequestDTO data) {
-        User user = userRepository.findById(data.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", data.userId()));
-        CashRegister cashRegister = registerRepository.findById(data.cashRegisterId())
+        User user = authenticatedUserService.getCurrentUser();
+        Business business = businessContextService.getBusiness(data.businessId());
+        CashRegister cashRegister = registerRepository.findByIdAndBusiness_id(data.cashRegisterId(), business.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cash Register Not Found", "cash_register", data.cashRegisterId()));
 
         if(cashRegister.getStatus() == CashRegisterStatus.CLOSED){
@@ -92,12 +121,12 @@ public class CashMovementServiceImpl implements CashMovementService {
 
         Sales sale = null;
         if (data.saleId() != null) {
-            sale = saleRepository.findById(data.saleId())
+            sale = saleRepository.findByIdAndBusiness_id(data.saleId(), business.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", data.saleId()));
         }
         CancelledSale cancelledSale = null;
         if (data.cancelledSaleId() != null) {
-            cancelledSale = cancelledSaleRepository.findById(data.cancelledSaleId())
+            cancelledSale = cancelledSaleRepository.findByIdAndBusiness_id(data.cancelledSaleId(), business.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cancelled Sale Not Found", "cancelled_sale", data.cancelledSaleId()));
         }
 
@@ -118,7 +147,8 @@ public class CashMovementServiceImpl implements CashMovementService {
                 sale,
                 cancelledSale,
                 cashRegister,
-                data.description()
+                data.description(),
+                business
         );
 
         registerRepository.save(cashRegister);
@@ -128,11 +158,12 @@ public class CashMovementServiceImpl implements CashMovementService {
 
     @Transactional
     @Override
-    public CashMovementResponseDTO updateMovement(Long id, UpdateCashMovementRequestDTO data){
-        CashMovement movement = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", id));
+    public CashMovementResponseDTO updateMovement(Long movementId, UpdateCashMovementRequestDTO data){
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        CashMovement movement = repository.findByIdAndBusiness_id(movementId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", movementId));
 
-        CashRegister cashRegister = registerRepository.findById(movement.getCashRegister().getId())
+        CashRegister cashRegister = registerRepository.findByIdAndBusiness_id(movement.getCashRegister().getId(), businessId)
                         .orElseThrow(() -> new InvalidCashRegisterException("Cash Register Not Found"));
 
         BigDecimal oldAmount = movement.getAmount();

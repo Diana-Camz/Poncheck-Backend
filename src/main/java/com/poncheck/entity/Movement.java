@@ -22,7 +22,8 @@ public class Movement {
             User user,
             Product product,
             Sales sale,
-            Movement referenceMovement
+            Movement referenceMovement,
+            Business business
 
     ){
        this.typeInventoryMovement = typeInventoryMovement;
@@ -32,6 +33,7 @@ public class Movement {
        this.product = product;
        this.sale = sale;
        this.referenceMovement = referenceMovement;
+       this.business = business;
     }
 
     @Id
@@ -68,6 +70,10 @@ public class Movement {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_movement_id")
     private Movement referenceMovement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
     public void updateMovement(String description){
         if(description != null){

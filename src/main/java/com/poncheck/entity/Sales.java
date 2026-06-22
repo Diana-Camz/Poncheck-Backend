@@ -31,7 +31,8 @@ public class Sales {
             PaymentMethod paymentMethod,
             String description,
             User user,
-            CashRegister cashRegister
+            CashRegister cashRegister,
+            Business business
     ){
         this.total = total;
         this.paymentMethod = paymentMethod;
@@ -39,6 +40,7 @@ public class Sales {
         this.user = user;
         this.saleStatus = COMPLETED;
         this.cashRegister = cashRegister;
+        this.business = business;
     }
 
     @Id
@@ -78,6 +80,10 @@ public class Sales {
     @JoinColumn(name = "cr_id", nullable = false)
     private CashRegister cashRegister;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
+
     public void addSaleItem(SaleItem saleItem){
         items.add(saleItem);
         saleItem.setSale(this);
@@ -98,7 +104,7 @@ public class Sales {
 
     }
 
-    public void cancelSale(User user, String reason){
+    public void cancelSale(User user, Business business, String reason){
         if(this.saleStatus == CANCELLED){
             throw new InvalidSaleStateException("Sale Already Cancelled");
         }
@@ -106,6 +112,7 @@ public class Sales {
         CancelledSale cancelledSale = new CancelledSale(
                 this,
                 user,
+                business,
                 reason
         );
         cancelledSale.setSale(this);

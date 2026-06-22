@@ -10,6 +10,7 @@ public record AuthRegisterRequestDTO(
         String username,
         @NotBlank
         String password,
-        Role role
+        Role role,
+        Long businessId
 ) {
 }

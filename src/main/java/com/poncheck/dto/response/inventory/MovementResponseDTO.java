@@ -9,6 +9,7 @@ import com.poncheck.enums.TypeInventoryMovement;
 import java.time.LocalDateTime;
 
 public record MovementResponseDTO(
+            Long id,
             TypeInventoryMovement typeInventoryMovement,
             int quantity,
             LocalDateTime movementAt,
@@ -20,6 +21,7 @@ public record MovementResponseDTO(
 ) {
     public MovementResponseDTO(Movement movement){
         this(
+                movement.getId(),
                 movement.getTypeInventoryMovement(),
                 movement.getQuantity(),
                 movement.getMovementAt(),

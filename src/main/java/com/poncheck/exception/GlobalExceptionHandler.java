@@ -97,6 +97,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(InvalidBusinessOwnerException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidBusinessOwnerException(InvalidBusinessOwnerException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(InvalidUserBusinessException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidUserBusinessException(InvalidUserBusinessException exception){
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     //GENERIC EXCEPTIONS
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDTO> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {

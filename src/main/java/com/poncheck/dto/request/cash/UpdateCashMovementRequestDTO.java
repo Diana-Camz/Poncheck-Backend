@@ -9,6 +9,7 @@ public record UpdateCashMovementRequestDTO(
         @NotNull
         String description,
         @Positive
-        BigDecimal amount
+        BigDecimal amount,
+        Long businessId
 ) {
 }

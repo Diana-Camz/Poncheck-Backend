@@ -7,10 +7,9 @@ import java.math.BigDecimal;
 
 public record CashRegisterOpenRequestDTO(
         @NotNull
-        Long userId,
-        @NotNull
         @Positive
         BigDecimal openingAmount,
-        String description
+        String description,
+        Long businessId
 ) {
 }

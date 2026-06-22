@@ -27,18 +27,20 @@ public class CashRegister {
     public CashRegister(
             BigDecimal openingAmount,
             User openBy,
-            String description
+            String description,
+            Business business
     ){
         this.openingAmount = openingAmount;
         this.expectedAmount = openingAmount;
         this.openedBy = openBy;
         this.description = description;
         this.status = CashRegisterStatus.OPEN;
+        this.business = business;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cr")
+    @Column(name = "id_cash_register")
     private Long id;
 
     @Column(name = "opening_amount", nullable = false, precision = 10, scale = 2)
@@ -72,6 +74,10 @@ public class CashRegister {
     @JoinColumn(name = "closed_by")
     private User closedBy;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
+
     public void openRegister(){
             this.status = CashRegisterStatus.OPEN;
     }
@@ -85,7 +91,7 @@ public class CashRegister {
     }
 
     public void calculateDifference(){
-        this.difference = (this.expectedAmount).subtract(this.realAmount);
+        this.difference = (this.realAmount).subtract(this.expectedAmount);
     }
 
     public void increaseExpectedAmount(BigDecimal amount){

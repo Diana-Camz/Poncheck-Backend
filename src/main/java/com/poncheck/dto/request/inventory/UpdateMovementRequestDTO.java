@@ -1,6 +1,7 @@
 package com.poncheck.dto.request.inventory;
 
 public record UpdateMovementRequestDTO(
-        String description
+        String description,
+        Long businessId
 ) {
 }

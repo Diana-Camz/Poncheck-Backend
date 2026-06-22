@@ -31,7 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if(request.getServletPath().contains("/auth")) {
+        if(request.getServletPath().contains("/auth/login")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -68,6 +68,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         );
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
+
 
 
         filterChain.doFilter(request, response);

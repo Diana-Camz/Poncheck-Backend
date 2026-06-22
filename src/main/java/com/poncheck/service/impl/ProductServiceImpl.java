@@ -2,10 +2,14 @@ package com.poncheck.service.impl;
 
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.dto.request.product.UpdateActiveProductRequestDTO;
+import com.poncheck.dto.request.product.UpdateProductPriceRequestDTO;
 import com.poncheck.dto.request.product.UpdateProductRequestDTO;
 import com.poncheck.dto.response.product.ProductResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.Category;
 import com.poncheck.entity.Product;
+import com.poncheck.entity.User;
+import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
 import com.poncheck.repository.ProductRepository;
@@ -21,12 +25,15 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
+    private final BusinessContextService businessContextService;
+    private final AuthenticatedUserService authenticatedUserService;
 
     //Retrieves a product by its ID
     @Override
     public ProductResponseDTO getProductById(Long productId) {
-        Product product = repository.findById(productId)
-               .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Product product = repository.findByIdAndBusiness_id(productId, businessId)
+               .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", productId));
         return new ProductResponseDTO(product);
     }
 
@@ -42,7 +49,13 @@ public class ProductServiceImpl implements ProductService {
     //Retrieves a list of all active products
     @Override
     public List<ProductResponseDTO> getActiveProducts(){
-        List<Product> products = repository.findByActiveTrue();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Product> products;
+        if(currentUser.getRole() == Role.ADMIN){
+            products = repository.findByActiveTrue();
+        }else{
+            products = repository.findByActiveTrueAndBusinessId(currentUser.getBusiness().getId());
+        }
         return products.stream()
                 .map(ProductResponseDTO::new)
                 .toList();
@@ -50,7 +63,13 @@ public class ProductServiceImpl implements ProductService {
     //Retrieves a list of all inactive products
     @Override
     public List<ProductResponseDTO> getInactiveProducts(){
-        List<Product> products = repository.findByActiveFalse();
+        User currentUser = authenticatedUserService.getCurrentUser();
+        List<Product> products;
+        if(currentUser.getRole() == Role.ADMIN){
+            products = repository.findByActiveFalse();
+        }else{
+            products = repository.findByActiveFalseAndBusinessId(currentUser.getBusiness().getId());
+        }
         return products.stream()
                 .map(ProductResponseDTO::new)
                 .toList();
@@ -70,8 +89,11 @@ public class ProductServiceImpl implements ProductService {
     //Creates a new product, categoryID must not be null
     @Override
     public ProductResponseDTO createProduct(CreateProductRequestDTO productData){
-        Category category = categoryRepository.findById(productData.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category ID Not Found"));
+        Long businessId = businessContextService.getBusiness(productData.businessId()).getId();
+        Category category = categoryRepository.findByIdAndBusiness_id(productData.categoryId(), businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", productData.categoryId()));
+
+        Business business = businessContextService.getBusiness(productData.businessId());
         String code = generateProductCode(category);
         Product product = new Product(
                 productData.name(),
@@ -81,7 +103,9 @@ public class ProductServiceImpl implements ProductService {
                 productData.productSize(),
                 productData.poncheBase(),
                 category,
-                code);
+                code,
+                business
+        );
 
         Product savedProduct = repository.save(product);
         return new ProductResponseDTO(savedProduct);
@@ -89,16 +113,17 @@ public class ProductServiceImpl implements ProductService {
 
     //Updates product fields by its ID
     @Override
-    public ProductResponseDTO updateProduct(Long id, UpdateProductRequestDTO data) {
-        Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
-        if(repository.existsByCode(data.code())){
+    public ProductResponseDTO updateProduct(Long productId, UpdateProductRequestDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Product product = repository.findByIdAndBusiness_id(productId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", productId));
+        if(repository.existsByCodeAndBusinessId(data.code(), product.getBusiness().getId())){
                 throw new DuplicateFieldException("A product with this code already exists");
         }
         Category category = null;
         if(data.categoryId() != null){
-            category = categoryRepository.findById(data.categoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+            category = categoryRepository.findByIdAndBusiness_id(data.categoryId(), businessId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", data.categoryId()));
         }
 
         product.updateData(
@@ -114,13 +139,33 @@ public class ProductServiceImpl implements ProductService {
         return new ProductResponseDTO(updatedProduct);
     }
 
+    @Override
+    public List<ProductResponseDTO> updateProductPrice(UpdateProductPriceRequestDTO data) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        Category category = categoryRepository.findByIdAndBusiness_id(data.categoryId(), businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category Not found", "category", data.categoryId()));
+        List<Product> products = repository.findAll(
+                ProductSpecification.withFilters(
+                        businessId,
+                        category.getId(),
+                        data.poncheBase(),
+                        data.productSize()
+                )
+        );
+        products.forEach(product -> product.updatePrice(data.price()));
+
+        repository.saveAll(products);
+        return products.stream().map(ProductResponseDTO::new).toList();
+    }
+
     //Updates the product active status (logical deletion)
     @Override
-    public ProductResponseDTO updateActive(Long id, UpdateActiveProductRequestDTO status){
-        Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+    public ProductResponseDTO updateActive(Long productId, UpdateActiveProductRequestDTO data){
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        Product product = repository.findByIdAndBusiness_id(productId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", productId));
 
-        product.updateActive(status.active());
+        product.updateActive(data.active());
 
         Product updatedStatus = repository.save(product);
         return new ProductResponseDTO(updatedStatus);
@@ -129,7 +174,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id){
         Product product = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
         repository.delete(product);
     }
 

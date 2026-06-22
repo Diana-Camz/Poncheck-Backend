@@ -3,6 +3,7 @@ package com.poncheck.entity;
 import com.poncheck.dto.request.product.CreateProductRequestDTO;
 import com.poncheck.enums.PoncheBase;
 import com.poncheck.enums.ProductSize;
+import com.poncheck.exception.InsufficientStockException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,15 +28,19 @@ public class Product {
             ProductSize productSize,
             PoncheBase poncheBase,
             Category category,
-            String code) {
+            String code,
+            Business business
+            ) {
         this.name = name;
         this.code = code;
+        this.stock = 0;
         this.price = price;
         this.flavor = flavor;
         this.description = description;
         this.productSize = productSize;
         this.poncheBase = poncheBase;
         this.category = category;
+        this.business = business;
         this.active = true;
     }
 
@@ -49,6 +54,9 @@ public class Product {
 
     @Column(nullable = false,  unique = true, length = 100)
     private String code;
+
+    @Column(nullable = false)
+    private int stock;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -72,6 +80,10 @@ public class Product {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
 
     public void updateData(
@@ -108,6 +120,26 @@ public class Product {
         if(category != null){
             this.category = category;
         }
+    }
+
+    public void updatePrice(BigDecimal price){
+        if(price != null){
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Price must be greater than zero");
+            }
+            this.price = price;
+        }
+    }
+
+    public void increaseStock(int quantity){
+        this.stock += quantity;
+    }
+
+    public void decreaseStock(int quantity){
+        if(this.stock < quantity){
+            throw new InsufficientStockException("Insufficient stock", this.id);
+        }
+        this.stock -= quantity;
     }
 
     public void updateActive(Boolean active){

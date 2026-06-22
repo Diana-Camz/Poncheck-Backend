@@ -8,11 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,13 +38,22 @@ public class SecurityConfig {
             AuthenticationProvider authenticationProvider
             ) throws Exception{
          http
-                 .csrf(csrf -> csrf.disable())
+                 .csrf(AbstractHttpConfigurer::disable)
+                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                  .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/**")
-                                .permitAll()
-                        .anyRequest().authenticated()
-                )
-                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                         .requestMatchers(HttpMethod.POST, "/auth/register").hasAnyRole("OWNER", "ADMIN")
+                         .requestMatchers(HttpMethod.PATCH, "/users/{id}/active").hasAnyRole("OWNER", "ADMIN")
+                         .requestMatchers(HttpMethod.DELETE, "/users/{id}").hasRole("ADMIN")
+                         .requestMatchers(HttpMethod.DELETE, "/products/{id}").hasRole("ADMIN")
+                         .requestMatchers(HttpMethod.POST,"/products/", "/products/{id}/active", "/products/prices").hasAnyRole("ADMIN", "OWNER")
+                         .requestMatchers(HttpMethod.DELETE, "/categories/{id}").hasRole("ADMIN")
+                         .requestMatchers(HttpMethod.POST,"/categories/", "/categories/{id}/active").hasAnyRole("ADMIN", "OWNER")
+                         .requestMatchers(HttpMethod.PUT, "/business/{id}").hasAnyRole("OWNER", "ADMIN")
+                         .requestMatchers("/business/**").hasRole("ADMIN")
+                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/docs").permitAll()
+                         .anyRequest().authenticated()
+                 )
                  .authenticationProvider(authenticationProvider)
                  .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

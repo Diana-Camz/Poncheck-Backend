@@ -3,6 +3,7 @@ package com.poncheck.service.impl;
 import com.poncheck.dto.request.user.UpdateActiveUserRequestDTO;
 import com.poncheck.dto.request.user.UpdateUserRequestDTO;
 import com.poncheck.dto.response.user.UserResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
 import com.poncheck.exception.DuplicateFieldException;
 import com.poncheck.exception.ResourceNotFoundException;
@@ -19,6 +20,8 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
+    private final BusinessContextService businessContextService;
+
 
     //Retrieves all users
     @Override
@@ -32,7 +35,8 @@ public class UserServiceImpl implements UserService {
     //Retrieves all active users
     @Override
     public List<UserResponseDTO> getActiveUsers() {
-        List<User> users = repository.findByActiveTrue();
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        List<User> users = repository.findByActiveTrueAndBusinessId(businessId);
         return users.stream()
                 .map(UserResponseDTO::new)
                 .toList();
@@ -41,7 +45,8 @@ public class UserServiceImpl implements UserService {
     //Retrieves all inactive users
     @Override
     public List<UserResponseDTO> getInactiveUsers() {
-        List<User> users = repository.findByActiveFalse();
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        List<User> users = repository.findByActiveFalseAndBusinessId(businessId);
         return users.stream()
                 .map(UserResponseDTO::new)
                 .toList();
@@ -49,23 +54,26 @@ public class UserServiceImpl implements UserService {
 
     //Retrieves a user by its ID
     @Override
-    public UserResponseDTO getUserById(Long id) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+    public UserResponseDTO getUserById(Long userId) {
+        Long businessId = businessContextService.getCurrentBusiness().getId();
+        User user = repository.findByIdAndBusiness_id(userId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
         return new UserResponseDTO(user);
     }
 
     @Override
-    public UserResponseDTO updateUser(Long id, UpdateUserRequestDTO userData) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
-        if(repository.existsUserByUsername(userData.username())){
+    public UserResponseDTO updateUser(Long userId, UpdateUserRequestDTO userData) {
+        Long businessId = businessContextService.getBusiness(userData.businessId()).getId();
+        User user = repository.findByIdAndBusiness_id(userId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+
+        if(repository.existsByUsername(userData.username())){
             throw new DuplicateFieldException("A user with this username already exists");
         }
+
         user.updateUser(
                 userData.name(),
-                userData.username(),
-                userData.role()
+                userData.username()
         );
 
         User userSaved = repository.save(user);
@@ -73,18 +81,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO updateActive(Long id, UpdateActiveUserRequestDTO status) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
-        user.inactiveUser(status.active());
+    public UserResponseDTO updateActive(Long userId, UpdateActiveUserRequestDTO data) {
+        Long businessId = businessContextService.getBusiness(data.businessId()).getId();
+        User user = repository.findByIdAndBusiness_id(userId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+        user.inactiveUser(data.active());
         User userSaved = repository.save(user);
         return new UserResponseDTO(userSaved);
     }
 
     @Override
-    public void deleteUser(Long id) {
-        User user = repository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+    public void deleteUser(Long userId) {
+        User user = repository.findById(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
         repository.delete(user);
     }
 }

@@ -1,6 +1,6 @@
 package com.poncheck.enums;
 
-public enum StoreStatus {
+public enum CashRegisterStatus {
     CLOSED,
     OPEN
 }

@@ -4,8 +4,12 @@ import com.poncheck.dto.request.auth.AuthLoginRequestDTO;
 import com.poncheck.dto.request.auth.AuthRegisterRequestDTO;
 import com.poncheck.dto.response.auth.AuthResponseDTO;
 import com.poncheck.dto.response.token.TokenResponseDTO;
+import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
+import com.poncheck.enums.Role;
 import com.poncheck.exception.DuplicateFieldException;
+import com.poncheck.exception.InvalidUserBusinessException;
+import com.poncheck.repository.BusinessRepository;
 import com.poncheck.repository.UserRepository;
 import com.poncheck.service.AuthService;
 import com.poncheck.service.JwtService;
@@ -22,8 +26,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticatedUserService authenticatedUserService;
+    private final BusinessContextService businessContextService;
 
     @Override
     public AuthResponseDTO login(AuthLoginRequestDTO data) {
@@ -37,27 +44,50 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByUsername(data.username())
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
-        String jwtoken = jwtService.generateToken(user);
+        String jwtToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
         user.setRefreshToken(refreshToken);
         userRepository.save(user);
-        return new AuthResponseDTO(user, jwtoken, refreshToken);
+        return new AuthResponseDTO(user, jwtToken, refreshToken);
     }
 
     //Creates new User
     @Override
     public AuthResponseDTO register(AuthRegisterRequestDTO userData) {
-        if(userRepository.existsUserByUsername(userData.username())){
+        String hashedPassword = passwordEncoder.encode(userData.password());
+        Business business = null;
+
+        if(userRepository.existsByUsername(userData.username())){
             throw new DuplicateFieldException("A user with this username already exists");
         }
 
-        String hashedPassword = passwordEncoder.encode(userData.password());
+        User currentUser = authenticatedUserService.getCurrentUser();
+        if(currentUser.getRole() != Role.ADMIN && userData.role() == Role.ADMIN){
+            throw new InvalidUserBusinessException("Only admins can create admin users");
+        }
+
+        if(currentUser.getRole() == Role.OWNER){
+            business = businessContextService.getBusiness(currentUser.getBusiness().getId());
+
+        }
+
+        boolean rolToRegister = userData.role() == Role.OWNER || userData.role() == Role.SELLER;
+        if (currentUser.getRole() == Role.ADMIN && rolToRegister && userData.businessId() == null) {
+            throw new InvalidUserBusinessException(
+                    "Sellers and Owners must belong to a business"
+            );
+        }
+
+        if (currentUser.getRole() == Role.ADMIN && rolToRegister) {
+                business = businessContextService.getBusiness(userData.businessId());
+        }
 
         User user = new User(
                 userData.name(),
                 userData.username(),
                 hashedPassword,
-                userData.role()
+                userData.role(),
+                business
         );
 
         String jwtToken = jwtService.generateToken(user);
@@ -80,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid Refresh Token");
         }
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username )
                 .orElseThrow(() -> new UsernameNotFoundException("User " + username + " Not Found"));
 
         if(!jwtService.isTokenValid(refreshToken, user)){

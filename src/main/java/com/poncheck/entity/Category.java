@@ -14,9 +14,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Category {
     public Category(
-            String name
+            String name,
+            Business business
     ){
         this.name = name;
+        this.business = business;
         this.active = true;
     }
     @Id
@@ -29,6 +31,10 @@ public class Category {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 
     public void updateCategory(String name){
         if(name != null){

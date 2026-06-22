@@ -19,17 +19,20 @@ import java.time.LocalDateTime;
 public class CancelledSale {
 
     public CancelledSale(
-            Long id,
+            Sales sale,
             User user,
+            Business business,
             String reason
     ){
+        this.sale = sale;
         this.user = user;
         this.reason = reason;
+        this.business = business;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_cancelation")
+    @Column(name = "id_cancellation")
     private Long id;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -41,4 +44,7 @@ public class CancelledSale {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id", nullable = false)
     private Sales sale;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", nullable = false)
+    Business business;
 }

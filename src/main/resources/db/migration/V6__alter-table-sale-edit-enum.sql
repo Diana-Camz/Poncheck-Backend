@@ -1,1 +1,0 @@
-ALTER TABLE sales MODIFY COLUMN payment_method ENUM('CASH', 'CARD', 'TRANSFER');

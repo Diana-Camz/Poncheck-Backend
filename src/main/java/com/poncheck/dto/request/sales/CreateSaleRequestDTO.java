@@ -10,9 +10,8 @@ public record CreateSaleRequestDTO(
         @NotNull
         PaymentMethod paymentMethod,
         String description,
-        @NotNull
-        Long userId,
         @NotEmpty
-        List<SaleItemRequestDTO> items
+        List<SaleItemRequestDTO> items,
+        Long businessId
 ) {
 }

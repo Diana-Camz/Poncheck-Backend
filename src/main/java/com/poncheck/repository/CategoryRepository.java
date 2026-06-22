@@ -6,10 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    List<Category> findByActiveTrue();
-    List<Category> findByActiveFalse();
-    boolean existsByNameIgnoreCase(String name);
+    Optional<Category> findByIdAndBusiness_id(Long categoryId, Long businessId);
+    List<Category> findByActiveTrueAndBusinessId(Long businessId);
+    List<Category> findByActiveFalseAndBusinessId(Long businessId);
+    boolean existsByNameIgnoreCaseAndBusinessId(String name, Long businessId);
 }

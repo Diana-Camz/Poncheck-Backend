@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
     private final BusinessContextService businessContextService;
-
+    private final AuthenticatedUserService authenticatedUserService;
 
     //Retrieves all users
     @Override
@@ -58,6 +58,13 @@ public class UserServiceImpl implements UserService {
         Long businessId = businessContextService.getCurrentBusiness().getId();
         User user = repository.findByIdAndBusiness_id(userId, businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+        return new UserResponseDTO(user);
+    }
+
+    //Retrieves current user
+    @Override
+    public UserResponseDTO getCurrentUser() {
+        User user = authenticatedUserService.getCurrentUser();
         return new UserResponseDTO(user);
     }
 

@@ -1,5 +1,6 @@
 package com.poncheck.dto.response.user;
 
+import com.poncheck.dto.response.business.BusinessResponseDTO;
 import com.poncheck.entity.Business;
 import com.poncheck.entity.User;
 import com.poncheck.enums.Role;
@@ -10,7 +11,7 @@ public record UserResponseDTO(
         String username,
         Role role,
         Boolean active,
-        String business
+        BusinessResponseDTO business
 ) {
     public UserResponseDTO(User user){
         this(
@@ -19,7 +20,7 @@ public record UserResponseDTO(
                 user.getUsername(),
                 user.getRole(),
                 user.getActive(),
-                user.getBusiness().getName()
+                (user.getBusiness() != null ) ? new BusinessResponseDTO(user.getBusiness()) : null
         );
     }
 

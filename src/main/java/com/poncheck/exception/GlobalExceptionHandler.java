@@ -18,6 +18,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException exception){
         ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getCode(),
                 exception.getMessage(),
                 exception.getResource(),
                 exception.getResourceId(),
@@ -27,25 +28,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateFieldException.class)
     public ResponseEntity<ErrorResponseDTO> handleDuplicateField(DuplicateFieldException exception){
-        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getCode(), exception.getMessage(), HttpStatus.CONFLICT.value());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(SaleAlreadyCancelledException.class)
     public ResponseEntity<ErrorResponseDTO> handleSaleAlreadyCancelled(SaleAlreadyCancelledException exception){
-        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getCode(), exception.getMessage(), HttpStatus.CONFLICT.value());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(InvalidSaleStateException.class)
     public ResponseEntity<ErrorResponseDTO> handleInvalidSaleStateException(InvalidSaleStateException exception){
-        ErrorResponseDTO error = new ErrorResponseDTO(exception.getMessage(), HttpStatus.CONFLICT.value());
+        ErrorResponseDTO error = new ErrorResponseDTO(exception.getCode(), exception.getMessage(), HttpStatus.CONFLICT.value());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<ErrorResponseDTO> handleInsufficientStockException(InsufficientStockException exception){
         ErrorResponseDTO error = new ErrorResponseDTO(
+                exception.getCode(),
                 exception.getMessage(),
                 exception.getResourceId(),
                 HttpStatus.BAD_REQUEST.value());

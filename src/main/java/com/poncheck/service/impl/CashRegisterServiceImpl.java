@@ -35,7 +35,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         Business business = businessContextService.getBusiness(data.businessId());
         Long businessId = business.getId();
         if(repository.existsByStatusAndBusinessId(CashRegisterStatus.OPEN, businessId)){
-            throw new InvalidCashRegisterException("There is one Cash Register already open");
+            throw new InvalidCashRegisterException("CASH_REGISTER_ALREADY_OPEN", "There is one Cash Register already open");
         }
         User currentUser = authenticatedUserService.getCurrentUser();
 
@@ -53,7 +53,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     @Override
     public CashRegisterResponseDTO closeRegister(Long id, CashRegisterCloseRequestDTO data) {
         CashRegister cashRegister = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", id));
+                .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_FOUND", "Register Not Found", "cash_register", id));
 
         User user = authenticatedUserService.getCurrentUser();
         cashRegister.setClosedBy(user);
@@ -72,10 +72,10 @@ public class CashRegisterServiceImpl implements CashRegisterService {
         CashRegister register;
         if(currentUser.getRole() == Role.ADMIN){
             register = repository.findByStatus(CashRegisterStatus.OPEN)
-                    .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
+                    .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_OPEN", "No open Cash Register", "cash_register", null));
         }else{
             register = repository.findByStatusAndBusiness_id(CashRegisterStatus.OPEN, currentUser.getBusiness().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("No open Cash Register", "cash_register", null));
+                    .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_OPEN", "No open Cash Register", "cash_register", null));
         }
 
 
@@ -86,7 +86,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     public CashRegisterResponseDTO getRegisterById(Long registerId){
         Long businessId = businessContextService.getCurrentBusiness().getId();
         CashRegister register = repository.findByIdAndBusiness_id(registerId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", registerId));
+                .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_FOUND", "Register Not Found", "cash_register", registerId));
 
         return new CashRegisterResponseDTO(register);
     }
@@ -94,7 +94,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     @Override
     public List<CashRegisterResponseDTO> getRegistersByDateRange(LocalDateTime start, LocalDateTime end){
         if (start.isAfter(end)) {
-            throw new InvalidDateRangeException("Start date cannot be after end date");
+            throw new InvalidDateRangeException("INVALID_DATE_RANGE", "Start date cannot be after end date");
         }
         User currentUser = authenticatedUserService.getCurrentUser();
         List<CashRegister> registerList;
@@ -110,7 +110,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     @Override
     public List<CashRegisterResponseDTO> getRegistersOpenedByUser(Long id){
         userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", id));
         List<CashRegister> registerList = repository.findByOpenedBy_id(id);
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 
@@ -119,7 +119,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     @Override
     public List<CashRegisterResponseDTO> getRegistersClosedByUser(Long id){
         userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", id));
         List<CashRegister> registerList = repository.findByClosedBy_id(id);
         return  registerList.stream().map(CashRegisterResponseDTO::new).toList();
 
@@ -129,7 +129,7 @@ public class CashRegisterServiceImpl implements CashRegisterService {
     public CashRegisterResponseDTO updateRegister(Long registerId, UpdateRegisterRequestDTO data){
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         CashRegister register = repository.findByIdAndBusiness_id(registerId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Register Not Found", "cash_register", registerId));
+                .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_FOUND","Register Not Found", "cash_register", registerId));
 
         register.updateRegister(
                 data.description(),

@@ -35,7 +35,7 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public BusinessResponseDTO getBusinessById(Long id){
         Business business = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
+                .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", id));
 
         return new BusinessResponseDTO(business);
     }
@@ -69,7 +69,7 @@ public class BusinessServiceImpl implements BusinessService {
         User owner = null;
         if(data.ownerId() != null){
             owner = userRepository.findById(data.ownerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Owner Not Found", "user", data.ownerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("OWNER_NOT_FOUND", "Owner Not Found", "user", data.ownerId()));
         }
 
         String businessCode = generateCode(data.name());
@@ -93,7 +93,7 @@ public class BusinessServiceImpl implements BusinessService {
     public BusinessResponseDTO updateBusiness(Long businessId, UpdateBusinessRequestDTO data){
         Long ownerId = authenticatedUserService.getCurrentUser().getId();
         Business business = repository.findByIdAndOwner_id(businessId, ownerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
+                .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", businessId));
 
         business.updateBusiness(
                 data.name(),
@@ -111,7 +111,7 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public BusinessResponseDTO updateActive(Long businessId, UpdateActiveBusinessRequestDTO data){
         Business business = repository.findById(businessId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
+                        .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", businessId));
 
         business.updateActive(
                 data.active()
@@ -123,17 +123,17 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public BusinessResponseDTO updateOwner(Long businessId, UpdateOwnerBusinessRequestDTO data){
         Business business = repository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
+                .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", businessId));
 
         User owner = userRepository.findByIdAndBusiness_id(data.ownerId(), businessId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Owner Not Found", "user", data.ownerId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("OWNER_NOT_FOUND", "Owner Not Found", "user", data.ownerId()));
 
         if(!business.getActive()){
-            throw new InvalidBusinessOwnerException("Business must be active");
+            throw new InvalidBusinessOwnerException("BUSINESS_NOT_ACTIVE", "Business must be active");
         }
 
         if(owner.getRole() != Role.OWNER){
-            throw new InvalidBusinessOwnerException("User must have OWNER role to be assigned as business owner");
+            throw new InvalidBusinessOwnerException("INVALID_BUSINESS_ASSIGNED", "User must have OWNER role to be assigned as business owner");
         }
         business.updateBusinessOwner(
                 owner
@@ -146,7 +146,7 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public void deleteBusiness(Long id){
         Business business = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", id));
+                .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", id));
         repository.delete(business);
     }
 }

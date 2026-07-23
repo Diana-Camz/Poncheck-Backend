@@ -60,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO getCategoryById(Long categoryId) {
         Long businessId = businessContextService.getCurrentBusiness().getId();
         Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
+                .orElseThrow(() -> new ResourceNotFoundException("CATEGORY_NOT_FOUND", "Category Not Found", "category", categoryId));
         return new CategoryResponseDTO(category);
     }
 
@@ -71,7 +71,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         Business business = businessContextService.getBusiness(data.businessId());
         if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, business.getId())){
-            throw new DuplicateFieldException("A category with this name already exists");
+            throw new DuplicateFieldException("CATEGORY_ALREADY_EXISTS", "A category with this name already exists");
         }
 
         Category category = new Category(data.name().trim(), business);
@@ -84,11 +84,11 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO updateCategory(Long categoryId, UpdateCategoryRequestDTO data) {
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", categoryId));
+                .orElseThrow(() -> new ResourceNotFoundException("CATEGORY_NOT_FOUND", "Category Not Found", "category", categoryId));
         String normalizedName = data.name().trim().toLowerCase();
 
         if(repository.existsByNameIgnoreCaseAndBusinessId(normalizedName, businessId)){
-            throw new DuplicateFieldException("A category with this name already exists");
+            throw new DuplicateFieldException("CATEGORY_ALREADY_EXISTS", "A category with this name already exists");
         }
         category.updateCategory(data.name());
         Category categoryUpdated = repository.save(category);
@@ -100,7 +100,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO updateActive(Long categoryId, UpdateActiveCategoryDTO data) {
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         Category category = repository.findByIdAndBusiness_id(categoryId, businessId)
-                .orElseThrow(()-> new ResourceNotFoundException("Category Not Found", "category", categoryId));
+                .orElseThrow(()-> new ResourceNotFoundException("CATEGORY_NOT_FOUND", "Category Not Found", "category", categoryId));
         category.updateActive(data.active());
         Category updatedStatus = repository.save(category);
         return new CategoryResponseDTO(updatedStatus);
@@ -110,7 +110,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(Long id) {
         Category category = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category Not Found", "category", id));
+                .orElseThrow(() -> new ResourceNotFoundException("CATEGORY_NOT_FOUND", "Category Not Found", "category", id));
 
         repository.delete(category);
     }

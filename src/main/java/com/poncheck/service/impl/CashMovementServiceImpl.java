@@ -48,7 +48,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     public List<CashMovementResponseDTO> getMovementsBySale(Long saleId){
         User currentUser = authenticatedUserService.getCurrentUser();
         saleRepository.findByIdAndBusiness_id(saleId, currentUser.getBusiness().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sales", saleId));
         List<CashMovement> movementList;
         if(currentUser.getRole() == Role.ADMIN){
             movementList = repository.findCashMovementBySaleId(saleId);
@@ -62,14 +62,14 @@ public class CashMovementServiceImpl implements CashMovementService {
     public CashMovementResponseDTO getMovementById(Long saleId){
         Long businessId = authenticatedUserService.getCurrentUser().getBusiness().getId();
         CashMovement movement = repository.findByIdAndBusiness_id(saleId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("MOVEMENT_NOT_FOUND", "Movement Not Found", "cash_movement", saleId));
         return new CashMovementResponseDTO(movement);
     }
 
     @Override
     public List<CashMovementResponseDTO> getCashMovementsByDateRange(LocalDateTime start, LocalDateTime end){
         if (start.isAfter(end)) {
-            throw new InvalidDateRangeException("Start date cannot be after end date");
+            throw new InvalidDateRangeException("INVALID_DATE_RANGE", "Start date cannot be after end date");
         }
         User currentUser = authenticatedUserService.getCurrentUser();
         List<CashMovement> movementList;
@@ -85,7 +85,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     @Override
     public List<CashMovementResponseDTO> getMovementsBySalesByDateRange(LocalDateTime start, LocalDateTime end) {
         if (start.isAfter(end)) {
-            throw new InvalidDateRangeException("Start date cannot be after end date");
+            throw new InvalidDateRangeException("INVALID_DATE_RANGE", "Start date cannot be after end date");
         }
         User currentUser = authenticatedUserService.getCurrentUser();
         List<CashMovement> movementList = repository.findBySale_dateBetweenAndBusiness_id(start, end, currentUser.getBusiness().getId());
@@ -95,7 +95,7 @@ public class CashMovementServiceImpl implements CashMovementService {
     @Override
     public List<CashMovementResponseDTO> getCashMovementsByUser(Long id){
         userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", id));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", id));
         User currentUser = authenticatedUserService.getCurrentUser();
         List<CashMovement> movementList;
         if(currentUser.getRole() == Role.ADMIN){
@@ -113,25 +113,25 @@ public class CashMovementServiceImpl implements CashMovementService {
         User user = authenticatedUserService.getCurrentUser();
         Business business = businessContextService.getBusiness(data.businessId());
         CashRegister cashRegister = registerRepository.findByIdAndBusiness_id(data.cashRegisterId(), business.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cash Register Not Found", "cash_register", data.cashRegisterId()));
+                .orElseThrow(() -> new ResourceNotFoundException("CASH_REGISTER_NOT_FOUND", "Cash Register Not Found", "cash_register", data.cashRegisterId()));
 
         if(cashRegister.getStatus() == CashRegisterStatus.CLOSED){
-            throw new InvalidCashRegisterException("Cash register is closed");
+            throw new InvalidCashRegisterException("CASH_REGISTER_NOT_OPEN", "Cash register is closed");
         }
 
         Sales sale = null;
         if (data.saleId() != null) {
             sale = saleRepository.findByIdAndBusiness_id(data.saleId(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", data.saleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sale", data.saleId()));
         }
         CancelledSale cancelledSale = null;
         if (data.cancelledSaleId() != null) {
             cancelledSale = cancelledSaleRepository.findByIdAndBusiness_id(data.cancelledSaleId(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Cancelled Sale Not Found", "cancelled_sale", data.cancelledSaleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("CANCELLED_SALE_NOT_FOUND", "Cancelled Sale Not Found", "cancelled_sale", data.cancelledSaleId()));
         }
 
         if(!data.type().isManualAllowed()){
-            throw new InvalidCashMovementException("Movements of type Sale or Refund are not permitted manually");
+            throw new InvalidCashMovementException("INVALID_MOVEMENT", "Movements of type Sale or Refund are not permitted manually");
         }
 
         if(data.type().isAddCash()){
@@ -161,10 +161,10 @@ public class CashMovementServiceImpl implements CashMovementService {
     public CashMovementResponseDTO updateMovement(Long movementId, UpdateCashMovementRequestDTO data){
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         CashMovement movement = repository.findByIdAndBusiness_id(movementId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "cash_movement", movementId));
+                .orElseThrow(() -> new ResourceNotFoundException("MOVEMENT_NOT_FOUND", "Movement Not Found", "cash_movement", movementId));
 
         CashRegister cashRegister = registerRepository.findByIdAndBusiness_id(movement.getCashRegister().getId(), businessId)
-                        .orElseThrow(() -> new InvalidCashRegisterException("Cash Register Not Found"));
+                        .orElseThrow(() -> new InvalidCashRegisterException("CASH_REGISTER_NOT_FOUND", "Cash Register Not Found"));
 
         BigDecimal oldAmount = movement.getAmount();
 

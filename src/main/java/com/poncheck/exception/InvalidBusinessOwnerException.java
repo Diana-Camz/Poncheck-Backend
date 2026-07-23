@@ -1,7 +1,12 @@
 package com.poncheck.exception;
 
 public class InvalidBusinessOwnerException extends RuntimeException {
-    public InvalidBusinessOwnerException(String message) {
+    private final String code;
+    public InvalidBusinessOwnerException(String code, String message) {
         super(message);
+        this.code = code;
+    }
+    public String getCode() {
+        return code;
     }
 }

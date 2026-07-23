@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO getUserById(Long userId) {
         Long businessId = businessContextService.getCurrentBusiness().getId();
         User user = repository.findByIdAndBusiness_id(userId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", userId));
         return new UserResponseDTO(user);
     }
 
@@ -72,10 +72,10 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO updateUser(Long userId, UpdateUserRequestDTO userData) {
         Long businessId = businessContextService.getBusiness(userData.businessId()).getId();
         User user = repository.findByIdAndBusiness_id(userId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", userId));
 
         if(repository.existsByUsername(userData.username())){
-            throw new DuplicateFieldException("A user with this username already exists");
+            throw new DuplicateFieldException("USER_ALREADY_EXISTS", "A user with this username already exists");
         }
 
         user.updateUser(
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO updateActive(Long userId, UpdateActiveUserRequestDTO data) {
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         User user = repository.findByIdAndBusiness_id(userId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", userId));
         user.inactiveUser(data.active());
         User userSaved = repository.save(user);
         return new UserResponseDTO(userSaved);
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long userId) {
         User user = repository.findById(userId)
-                        .orElseThrow(() -> new ResourceNotFoundException("User Not Found", "user", userId));
+                        .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User Not Found", "user", userId));
         repository.delete(user);
     }
 }

@@ -89,10 +89,10 @@ public class CashMovement {
             return;
         }
         if(this.cashRegister.getStatus() == CashRegisterStatus.CLOSED){
-            throw new InvalidCashMovementException("Cash movement cannot be edited when cash register is closed");
+            throw new InvalidCashMovementException("INVALID_CASH_MOVEMENT", "Cash movement cannot be edited when cash register is closed");
         }
         if(!this.typeCashMovement.isManualAllowed()){
-            throw new InvalidCashMovementException("Movements of type Sale or Refund cannot be edited manually");
+            throw new InvalidCashMovementException("INVALID_CASH_MOVEMENT", "Movements of type Sale or Refund cannot be edited manually");
         }
 
         this.amount = amount;

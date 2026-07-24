@@ -137,7 +137,7 @@ public class Product {
 
     public void decreaseStock(int quantity){
         if(this.stock < quantity){
-            throw new InsufficientStockException("Insufficient stock", this.id);
+            throw new InsufficientStockException("INSUFFICIENT_STOCK", "Insufficient stock", this.id);
         }
         this.stock -= quantity;
     }

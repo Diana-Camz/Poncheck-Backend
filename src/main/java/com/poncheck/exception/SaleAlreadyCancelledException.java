@@ -1,7 +1,12 @@
 package com.poncheck.exception;
 
 public class SaleAlreadyCancelledException extends RuntimeException {
-    public SaleAlreadyCancelledException(String message) {
+    private final String code;
+    public SaleAlreadyCancelledException(String code, String message) {
         super(message);
+        this.code = code;
+    }
+    public String getCode() {
+        return code;
     }
 }

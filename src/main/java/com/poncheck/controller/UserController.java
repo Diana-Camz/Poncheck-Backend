@@ -48,6 +48,13 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Operation(summary = "Get current user", description = "Retrieves current user by its token.")
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(){
+        UserResponseDTO user = service.getCurrentUser();
+        return ResponseEntity.ok(user);
+    }
+
     @Operation(summary = "Update user", description = "Updates user information by its identifier.")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequestDTO userData){

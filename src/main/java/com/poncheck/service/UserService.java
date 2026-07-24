@@ -11,6 +11,7 @@ public interface UserService {
     List<UserResponseDTO> getActiveUsers();
     List<UserResponseDTO> getInactiveUsers();
     UserResponseDTO getUserById(Long id);
+    UserResponseDTO getCurrentUser();
     UserResponseDTO updateUser(Long id, UpdateUserRequestDTO user);
     UserResponseDTO updateActive(Long id, UpdateActiveUserRequestDTO status);
     void deleteUser(Long id);

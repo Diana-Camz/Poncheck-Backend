@@ -20,12 +20,12 @@ public class BusinessContextService {
 
         if(currentUser.getRole() == Role.ADMIN){
             return businessRepository.findById(businessId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Business Not Found", "business", businessId));
+                    .orElseThrow(() -> new ResourceNotFoundException("BUSINESS_NOT_FOUND", "Business Not Found", "business", businessId));
         }
 
         Business userBusiness = currentUser.getBusiness();
         if(businessId != null && !businessId.equals(userBusiness.getId())){
-            throw new UnauthorizedActionException("You cannot access another business");
+            throw new UnauthorizedActionException("UNAUTHORIZED_ACTION", "You cannot access another business");
         }
 
         return userBusiness;

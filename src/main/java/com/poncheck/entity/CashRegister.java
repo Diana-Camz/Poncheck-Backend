@@ -84,7 +84,7 @@ public class CashRegister {
 
     public void closeRegister(){
         if(this.status == CashRegisterStatus.CLOSED){
-            throw new InvalidCashRegisterException("Cash Register already closed");
+            throw new InvalidCashRegisterException("CASH_REGISTER_NOT_OPEN", "Cash Register already closed");
         }
             this.status = CashRegisterStatus.CLOSED;
             this.closedAt = LocalDateTime.now();
@@ -100,7 +100,7 @@ public class CashRegister {
 
     public void decreaseExpectedAmount(BigDecimal amount){
         if(this.expectedAmount.compareTo(amount) < 0){
-            throw new InvalidCashMovementException("Insufficient expected amount");
+            throw new InvalidCashMovementException("INSUFFICIENT_AMOUNT", "Insufficient expected amount");
         }
         this.expectedAmount = (this.expectedAmount).subtract(amount);
     }
@@ -112,7 +112,7 @@ public class CashRegister {
 
         if(realAmount != null){
             if(this.status == CashRegisterStatus.CLOSED){
-                throw new InvalidCashRegisterException("Real amount cannot be edited when cash register is closed");
+                throw new InvalidCashRegisterException("CASH_REGISTER_NOT_OPEN", "Real amount cannot be edited when cash register is closed");
             }else{
                 this.realAmount = realAmount;
             }

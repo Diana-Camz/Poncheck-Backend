@@ -49,7 +49,7 @@ public class MovementServiceIml implements MovementService {
     @Override
     public List<MovementItemResponseDTO> getMovementsByProduct(Long id){
         productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", id));
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product Not Found", "product", id));
         Long businessId = businessContextService.getCurrentBusiness().getId();
         List<Movement> productList = repository.findMovementsByProductIdAndBusiness_id(id, businessId);
         return productList.stream().map(MovementItemResponseDTO::new).toList();
@@ -59,7 +59,7 @@ public class MovementServiceIml implements MovementService {
     public List<MovementItemResponseDTO> getMovementsBySale(Long saleId){
         Long businessId = businessContextService.getCurrentBusiness().getId();
         saleRepository.findById(saleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sales", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sales", saleId));
         List<Movement> saleList = repository.findMovementsBySale_idAndBusiness_id(saleId, businessId);
         return saleList.stream().map(MovementItemResponseDTO::new).toList();
     }
@@ -68,7 +68,7 @@ public class MovementServiceIml implements MovementService {
     public MovementResponseDTO getMovementById(Long saleId){
         Long businessId = businessContextService.getCurrentBusiness().getId();
         Movement movement = repository.findByIdAndBusiness_id(saleId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "inventory_movement", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("MOVEMENT_NOT_FOUND", "Movement Not Found", "inventory_movement", saleId));
         return new MovementResponseDTO(movement);
     }
 
@@ -80,23 +80,23 @@ public class MovementServiceIml implements MovementService {
         Sales sale = null;
         if (data.saleId() != null) {
             sale = saleRepository.findByIdAndBusiness_id(data.saleId(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", data.saleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sale", data.saleId()));
         }
         Movement movementReference = null;
         if (data.referenceMovement() != null){
             movementReference = repository.findByIdAndBusiness_id(data.referenceMovement(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Movement Reference Not Found", "inventory_movement", data.referenceMovement()));
+                    .orElseThrow(() -> new ResourceNotFoundException("MOVEMENT_NOT_FOUND", "Movement Reference Not Found", "inventory_movement", data.referenceMovement()));
         }
 
         List<Movement> movements = data.products().stream().map((item) -> {
             Product product = productRepository.findByIdAndBusiness_id(item.productId(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product  Not Found", "product", item.productId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product  Not Found", "product", item.productId()));
             if(!product.getActive()){
-                throw new ResourceDisabledException("Product is disabled", product.getId());
+                throw new ResourceDisabledException("PRODUCT_DISABLED", "Product is disabled", product.getId());
             }
 
             if(!data.type().isManualAllowed()){
-                throw new InvalidMovementException("Movements of type Sale or Sale Cancelled are not permitted manually");
+                throw new InvalidMovementException("INVALID_MOVEMENT", "Movements of type Sale or Sale Cancelled are not permitted manually");
             }
             if (data.type().isAddsStock()) {
                 product.increaseStock(item.quantity());
@@ -125,7 +125,7 @@ public class MovementServiceIml implements MovementService {
     public MovementResponseDTO updateMovement(Long id, UpdateMovementRequestDTO data){
         Long businessId = businessContextService.getCurrentBusiness().getId();
         Movement movement = repository.findByIdAndBusiness_id(id, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movement Not Found", "inventory_movement", id));
+                .orElseThrow(() -> new ResourceNotFoundException("MOVEMENT_NOT_FOUND", "Movement Not Found", "inventory_movement", id));
         movement.updateMovement(
                 data.description()
         );

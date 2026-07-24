@@ -58,12 +58,12 @@ public class AuthServiceImpl implements AuthService {
         Business business = null;
 
         if(userRepository.existsByUsername(userData.username())){
-            throw new DuplicateFieldException("A user with this username already exists");
+            throw new DuplicateFieldException("USER_ALREADY_EXISTS", "A user with this username already exists");
         }
 
         User currentUser = authenticatedUserService.getCurrentUser();
         if(currentUser.getRole() != Role.ADMIN && userData.role() == Role.ADMIN){
-            throw new InvalidUserBusinessException("Only admins can create admin users");
+            throw new InvalidUserBusinessException("UNAUTHORIZED_ACTION", "Only admins can create admin users");
         }
 
         if(currentUser.getRole() == Role.OWNER){
@@ -74,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
         boolean rolToRegister = userData.role() == Role.OWNER || userData.role() == Role.SELLER;
         if (currentUser.getRole() == Role.ADMIN && rolToRegister && userData.businessId() == null) {
             throw new InvalidUserBusinessException(
+                    "UNAUTHORIZED_ACTION",
                     "Sellers and Owners must belong to a business"
             );
         }

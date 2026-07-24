@@ -58,14 +58,14 @@ public class SalesServiceImpl implements SalesService {
     public SalesResponseDTO getSaleById(Long saleId) {
         Long businessId = businessContextService.getCurrentBusiness().getId();
         Sales sale = repository.findByIdAndBusiness_id(saleId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sale", saleId));
         return new SalesResponseDTO(sale);
     }
 
     @Override
     public List<SalesResponseDTO> getSalesByDateRange(LocalDateTime start, LocalDateTime end){
         if (start.isAfter(end)) {
-            throw new InvalidDateRangeException("Start date cannot be after end date");
+            throw new InvalidDateRangeException("INVALID_DATE_RANGE", "Start date cannot be after end date");
         }
         Long businessId = businessContextService.getCurrentBusiness().getId();
         List<Sales> salesList = repository.findByDateBetweenAndBusinessId(start, end, businessId);
@@ -79,7 +79,7 @@ public class SalesServiceImpl implements SalesService {
         Business business = businessContextService.getBusiness(data.businessId());
         CashRegister register = registerRepository
                 .findByStatusAndBusiness_id(CashRegisterStatus.OPEN, business.getId())
-                .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
+                .orElseThrow(() -> new InvalidCashRegisterException("CASH_REGISTER_NOT_OPEN", "Cash Register is not open yet"));
         User user = authenticatedUserService.getCurrentUser();
         BigDecimal total = BigDecimal.ZERO;
 
@@ -94,17 +94,17 @@ public class SalesServiceImpl implements SalesService {
         repository.save(sale);
 
         if (data.items() == null || data.items().isEmpty()) {
-            throw new InvalidSaleException("Sale must have at least one item");
+            throw new InvalidSaleException("SALE_ITEMS_REQUIRED", "Sale must have at least one item");
         }
         List<SaleItemRequestDTO> items = data.items();
          for(SaleItemRequestDTO item : items) {
             Product product = productRepository.findByIdAndBusiness_id(item.productId(), business.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product Not Found", "product", item.productId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", "Product Not Found", "product", item.productId()));
             if(!product.getActive()){
-                throw new ResourceDisabledException("Product is disabled", product.getId());
+                throw new ResourceDisabledException("PRODUCT_DISABLED", "Product is disabled", product.getId());
             }
             if(!product.getCategory().getActive()){
-                throw new ResourceDisabledException("Category is disabled", product.getCategory().getId());
+                throw new ResourceDisabledException("CATEGORY_DISABLED", "Category is disabled", product.getCategory().getId());
             }
             BigDecimal unitPrice = product.getPrice();
             Integer quantity = item.quantity();
@@ -154,7 +154,7 @@ public class SalesServiceImpl implements SalesService {
     public SalesResponseDTO updateSale(Long saleId, UpdateSaleRequestDTO data){
         Long businessId = businessContextService.getBusiness(data.businessId()).getId();
         Sales sale = repository.findByIdAndBusiness_id(saleId, businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", saleId));
+                .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sale", saleId));
 
         sale.updateSale(
                 data.paymentMethod(),
@@ -170,9 +170,9 @@ public class SalesServiceImpl implements SalesService {
         Business business = businessContextService.getBusiness(data.businessId());
         CashRegister register = registerRepository
                 .findByStatusAndBusiness_id(CashRegisterStatus.OPEN, business.getId())
-                .orElseThrow(() -> new InvalidCashRegisterException("Cash Register is not open yet"));
+                .orElseThrow(() -> new InvalidCashRegisterException("CASH_REGISTER_NOT_OPEN", "Cash Register is not open yet"));
         Sales sale = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale Not Found", "sale", id));
+                .orElseThrow(() -> new ResourceNotFoundException("SALE_NOT_FOUND", "Sale Not Found", "sale", id));
 
         User user = authenticatedUserService.getCurrentUser();
 

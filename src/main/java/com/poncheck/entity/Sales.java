@@ -93,7 +93,7 @@ public class Sales {
             String description
     ){
         if(this.saleStatus == CANCELLED){
-            throw new SaleAlreadyCancelledException("Cancelled Sales Cannot Be Edited");
+            throw new SaleAlreadyCancelledException("SALE_ALREADY_CANCELLED", "Cancelled Sales Cannot Be Edited");
         }
         if(paymentMethod != null){
             this.paymentMethod = paymentMethod;
@@ -106,7 +106,7 @@ public class Sales {
 
     public void cancelSale(User user, Business business, String reason){
         if(this.saleStatus == CANCELLED){
-            throw new InvalidSaleStateException("Sale Already Cancelled");
+            throw new InvalidSaleStateException("SALE_ALREADY_CANCELLED", "Sale Already Cancelled");
         }
         this.saleStatus = CANCELLED;
         CancelledSale cancelledSale = new CancelledSale(
